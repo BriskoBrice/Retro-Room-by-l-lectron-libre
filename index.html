@@ -12,13 +12,11 @@
   <canvas id="room3d"></canvas>
   <div id="vignette"></div><div id="grain"></div>
   <div id="roomTag">RETRO ROOM <span>•</span> 1998</div>
-
   <div id="crtScreen" aria-label="Écran CRT">
     <div id="game" aria-label="EmulatorJS"></div>
     <div id="bootScreen"><b>BRISKO VISION</b><span>INSERT GAME</span><span class="tiny">MULTI-SYSTÈMES • PAD V4 • EJS + LOWRES NX</span></div>
     <div id="scanlines"></div><div id="glassGlow"></div>
   </div>
-
   <div id="deck">
     <div id="lcd"><span id="romName">NO CARTRIDGE</span><span id="status">PRÊT — CHOISIS UNE ROM</span></div>
     <select id="systemSelect" aria-label="Système"><option value="auto">AUTO</option></select>
@@ -26,7 +24,6 @@
     <button class="deckBtn" id="fullBtn" type="button">FULL</button>
     <input id="romInput" type="file">
   </div>
-
   <div class="touchGroup" id="dpad">
     <button class="padBtn up" data-input="4" aria-label="Haut"><i class="tri"></i></button>
     <button class="padBtn left" data-input="6" aria-label="Gauche"><i class="tri"></i></button>
@@ -34,17 +31,23 @@
     <button class="padBtn right" data-input="7" aria-label="Droite"><i class="tri"></i></button>
     <button class="padBtn down" data-input="5" aria-label="Bas"><i class="tri"></i></button>
   </div>
-
   <div class="touchGroup" id="actions" aria-label="Boutons d'action"></div>
   <div id="shoulders" aria-label="Gâchettes"></div>
   <div id="middleBtns" aria-label="Boutons système"></div>
-
   <div id="toast"></div>
-  <div id="threeError"><div><b>LE MOTEUR 3D N'A PAS CHARGÉ</b>Vérifie la connexion Internet puis rouvre ce fichier dans Chrome.</div></div>
+  <div id="threeError"><div><b>LE MOTEUR 3D N'A PAS CHARGÉ</b>Vérifie la connexion Internet puis recharge la page.</div></div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script src="/src/core.js"></script>
-<script src="/src/emulator.js"></script>
-<script src="/src/controls.js"></script>
+<script src="/src/core-config.js"></script>
+<script src="/src/core-room-a.js"></script>
+<script src="/src/core-room-b.js"></script>
+<script src="/src/core-render.js"></script>
+<script src="/src/emu-overlay.js"></script>
+<script src="/src/emu-lowres.js"></script>
+<script src="/src/emu-launch.js"></script>
+<script src="/src/emu-events.js"></script>
+<script src="/src/controls-layout.js"></script>
+<script src="/src/controls-input.js"></script>
+<script src="/src/controls-init.js"></script>
 </body>
 </html>
