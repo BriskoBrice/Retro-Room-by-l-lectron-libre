@@ -1,0 +1,7 @@
+'use strict';
+function releaseRomUrl(){if(romObjectUrl){try{URL.revokeObjectURL(romObjectUrl);}catch(_){}romObjectUrl=null;}}
+let ejsUiObserver=null;let ejsCleanRaf=0;
+function cleanEmulatorOverlay(){if(!emulatorStarted)return;const gameCanvas=gameDiv.querySelector('canvas');if(!gameCanvas)return;gameDiv.querySelectorAll('*').forEach(el=>{if(el===gameCanvas||el.contains(gameCanvas))return;if(el.tagName==='SCRIPT'||el.tagName==='STYLE')return;el.style.setProperty('display','none','important');el.style.setProperty('visibility','hidden','important');el.style.setProperty('pointer-events','none','important');el.setAttribute('aria-hidden','true');});gameCanvas.style.setProperty('max-width','100%','important');gameCanvas.style.setProperty('max-height','100%','important');}
+function scheduleEmulatorCleanup(){cancelAnimationFrame(ejsCleanRaf);ejsCleanRaf=requestAnimationFrame(cleanEmulatorOverlay);}
+function startEmulatorUiCleaner(){if(ejsUiObserver)ejsUiObserver.disconnect();ejsUiObserver=new MutationObserver(scheduleEmulatorCleanup);ejsUiObserver.observe(gameDiv,{childList:true,subtree:true});[0,60,160,320,700,1400,2600].forEach(ms=>setTimeout(cleanEmulatorOverlay,ms));}
+function minimalButtons(){return{playPause:false,restart:false,mute:false,settings:false,fullscreen:false,saveState:false,loadState:false,screenRecord:false,gamepad:false,cheat:false,volume:false,saveSavFiles:false,loadSavFiles:false,quickSave:false,quickLoad:false,screenshot:false,cacheManager:false,exitEmulation:false};}
