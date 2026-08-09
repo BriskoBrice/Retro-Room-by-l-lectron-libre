@@ -6,23 +6,27 @@
 <meta name="theme-color" content="#09070d">
 <title>Retro Room by L’électron libre</title>
 <link rel="stylesheet" href="/src/styles.css">
+<link rel="stylesheet" href="/src/library.css">
 </head>
 <body>
 <div id="app">
   <canvas id="room3d"></canvas>
   <div id="vignette"></div><div id="grain"></div>
   <div id="roomTag">RETRO ROOM <span>•</span> 1998</div>
+  <div id="libraryBadge"></div>
   <div id="crtScreen" aria-label="Écran CRT">
     <div id="game" aria-label="EmulatorJS"></div>
-    <div id="bootScreen"><b>BRISKO VISION</b><span>INSERT GAME</span><span class="tiny">MULTI-SYSTÈMES • PAD V4 • EJS + LOWRES NX</span></div>
+    <div id="bootScreen"><b>BRISKO VISION</b><span>INSERT GAME</span><span class="tiny">RETRO ROOM • L’ÉLECTRON LIBRE</span></div>
     <div id="scanlines"></div><div id="glassGlow"></div>
   </div>
   <div id="deck">
-    <div id="lcd"><span id="romName">NO CARTRIDGE</span><span id="status">PRÊT — CHOISIS UNE ROM</span></div>
+    <div id="lcd"><span id="romName">NO CARTRIDGE</span><span id="status">PRÊT — ROM OU BIBLIO</span></div>
     <select id="systemSelect" aria-label="Système"><option value="auto">AUTO</option></select>
     <button class="deckBtn" id="romBtn" type="button">ROM</button>
+    <button class="deckBtn" id="libBtn" type="button">BIBLIO</button>
     <button class="deckBtn" id="fullBtn" type="button">FULL</button>
     <input id="romInput" type="file">
+    <input id="romFolderInput" type="file" webkitdirectory directory multiple>
   </div>
   <div class="touchGroup" id="dpad">
     <button class="padBtn up" data-input="4" aria-label="Haut"><i class="tri"></i></button>
@@ -37,12 +41,28 @@
   <div id="toast"></div>
   <div id="threeError"><div><b>LE MOTEUR 3D N'A PAS CHARGÉ</b>Vérifie la connexion Internet puis recharge la page.</div></div>
 </div>
+
+<div id="libraryOverlay" aria-hidden="true">
+  <div id="libraryPanel">
+    <div id="libraryHeader">
+      <div id="libraryHeadText"><div class="libTitle">RETRO LIBRARY</div><div class="libSub">DOSSIER ROMS • CORE AUTO • MANETTE AUTO</div></div>
+      <input id="librarySearch" type="search" placeholder="Rechercher un jeu…">
+      <button class="libTool" id="folderBtn" type="button">DOSSIER</button>
+      <button class="libTool" id="closeLibraryBtn" type="button">FERMER</button>
+    </div>
+    <div id="libraryCrumbs"><button id="libraryBack" type="button">‹ SYSTÈMES</button><span id="libraryCrumbText">Choisis une console</span></div>
+    <div id="libraryContent"><div class="libraryEmpty"><b>AUCUN DOSSIER CHARGÉ</b>Touche DOSSIER et sélectionne ton dossier ROM principal.</div></div>
+    <div id="libraryFooter">Le dossier a priorité sur le nom du fichier : une archive dans <b>gamegear</b> reste Game Gear. Pour les ROMs ambiguës, le menu SYSTEM reste disponible en secours.</div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="/src/core-config.js"></script>
 <script src="/src/arcade-compat.js"></script>
 <script src="/src/core-room-a.js"></script>
 <script src="/src/core-room-b.js"></script>
 <script src="/src/core-polish.js"></script>
+<script src="/src/core-final-polish.js"></script>
 <script src="/src/core-render.js"></script>
 <script src="/src/emu-overlay.js"></script>
 <script src="/src/emu-lowres.js"></script>
@@ -51,5 +71,6 @@
 <script src="/src/controls-layout.js"></script>
 <script src="/src/controls-input.js"></script>
 <script src="/src/controls-init.js"></script>
+<script src="/src/library.js"></script>
 </body>
 </html>
