@@ -19,13 +19,13 @@
   const badge=document.getElementById('libraryBadge');
   let library=[];let currentSystem=null;
 
-  const SKIP=new Set(['png','jpg','jpeg','gif','webp','bmp','svg','txt','md','nfo','ini','db','pdf','xml','json','log','sav','srm','rtc','ips','ups','bps','cht','bak','tmp','state','thumbnail']);
+  const SKIP=new Set(['png','jpg','jpeg','gif','webp','bmp','svg','txt','md','nfo','ini','db','pdf','xml','json','log','sav','srm','rtc','ips','ups','bps','cht','bak','tmp','state','thumbnail','nomedia']);
   const FOLDER_MAP=new Map(Object.entries({
     'gamegear':'segaGG','game gear':'segaGG','gg':'segaGG','mastersystem':'segaMS','master system':'segaMS','sms':'segaMS',
     'megadrive':'segaMD','mega drive':'segaMD','genesis':'segaMD','sega genesis':'segaMD','32x':'sega32x','segacd':'segaCD','sega cd':'segaCD','megacd':'segaCD','mega cd':'segaCD','saturn':'segaSaturn',
     'gb':'gb','gameboy':'gb','game boy':'gb','gbc':'gb','gameboycolor':'gb','game boy color':'gb','gba':'gba','gameboyadvance':'gba','game boy advance':'gba',
     'nes':'nes','famicom':'nes','snes':'snes','supernintendo':'snes','super nintendo':'snes','superfamicom':'snes','super famicom':'snes','n64':'n64','nintendo64':'n64','nintendo 64':'n64','nds':'nds','nintendods':'nds','nintendo ds':'nds','virtualboy':'vb','virtual boy':'vb',
-    'psx':'psx','ps1':'psx','playstation':'psx','playstation1':'psx','psp':'psp','wonderswan':'ws','wonder swan':'ws','wsc':'ws','ngp':'ngp','ngpc':'ngp','neogeopocket':'ngp','neo geo pocket':'ngp',
+    'psx':'psx','ps1':'psx','playstation':'psx','playstation1':'psx','psp':'psp','wonderswan':'ws','wonder swan':'ws','wonderswancolor':'ws','wonderswan color':'ws','wonder swan color':'ws','wscolor':'ws','wsc':'ws','ngp':'ngp','ngpc':'ngp','neogeopocket':'ngp','neo geo pocket':'ngp',
     'pcengine':'pce','pc engine':'pce','turbografx':'pce','supergrafx':'pce','pcfx':'pcfx','pc fx':'pcfx','atari2600':'atari2600','atari 2600':'atari2600','atari5200':'a5200','atari 5200':'a5200','atari7800':'atari7800','atari 7800':'atari7800','lynx':'lynx','jaguar':'jaguar',
     'cps1':'cps1','cps 1':'cps1','cpsi':'cps1','cps2':'cps2','cps 2':'cps2','cpsii':'cps2','cps3':'cps3','cps 3':'cps3','cpsiii':'cps3','neogeo':'neogeo','neo geo':'neogeo','fbneo':'arcade','arcade':'arcade','mame':'mame2003',
     'lowres':'lowresnx','lowresnx':'lowresnx','lowres nx':'lowresnx','amiga':'amiga','c64':'c64','commodore64':'c64','commodore 64':'c64','spectrum':'spectrum','zxspectrum':'spectrum','zx spectrum':'spectrum','amstrad':'amstrad','coleco':'coleco','3do':'threeDO','cdi':'cdi','cd i':'cdi'
