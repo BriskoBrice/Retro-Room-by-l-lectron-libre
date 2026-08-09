@@ -1,30 +1,14 @@
 # Retro Room by L’électron libre
 
-Chambre retrogaming 3D immersive inspirée de l’ambiance des chambres 90s et des frontends VR de retrogaming, sans reprendre leurs assets.
+Chambre retrogaming 3D immersive 90s avec Three.js, EmulatorJS, LowRes NX et contrôles tactiles adaptatifs.
 
-## État actuel
+## État actuel — Final Test
+- Émulation stable conservée (Game Gear, WonderSwan, CPS I testés).
+- CPS II utilise par défaut le core FBA2012 CPS-2 pour compatibilité avec les romsets classiques, avec FBNeo disponible pour les romsets récents.
+- Bibliothèque ROM : sélection d’un dossier complet, scan récursif, classement par système, recherche, choix automatique du core et de la manette.
+- Le nom du dossier système a priorité sur le nom du fichier pour les archives ambiguës (ex. `Roms/gamegear/Arcade Classics.zip`).
+- Interface mobile Android et CRT intégrée à la scène 3D.
+- Vercel reste volontairement en pause pendant les tests locaux.
 
-La branche `main` contient la **base fonctionnelle stabilisée** avant la refonte graphique réaliste :
-
-- Three.js pour la chambre 3D
-- EmulatorJS 4.2.3
-- chargement de ROMs locales
-- Game Gear validée
-- WonderSwan validée
-- CPS I / FBNeo validé
-- contrôles tactiles externes à la CRT
-- sélection multi-systèmes
-- LowRes NX intégré séparément
-
-## Objectif graphique
-
-La prochaine étape est une refonte multi-fichiers plus proche d’une vraie chambre d’ado/geek des années 90 : matériaux plus réalistes, mobilier détaillé, densité d’objets, éclairage crédible, textures et modèles 3D optimisés mobile.
-
-## Lancer en local
-
-```bash
-npm install
-npm run dev
-```
-
-Le projet peut aussi être servi comme site statique. Les ROMs ne sont pas incluses dans le dépôt : elles sont chargées localement par l’utilisateur.
+## Workflow
+GitHub contient la version officielle du projet. Pour les tests Android, un fichier `RetroRoom_FINAL_TEST.html` est généré dans le chat et pointe vers un commit GitHub précis.
