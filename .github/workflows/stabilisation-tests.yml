@@ -22,3 +22,5 @@ jobs:
         run: npm test
       - name: Run syntax checks
         run: npm run check
+      - name: Frozen source hashes
+        run: sha256sum src/core-config.js src/arcade-compat.js src/emu-launch.js src/emu-overlay.js src/emu-lowres.js src/controls-layout.js src/controls-input.js src/controls-init.js
