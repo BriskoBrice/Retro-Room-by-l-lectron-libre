@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check src/core-config.js && node --check src/arcade-compat.js && node --check src/catalog-compat.js && node --check src/emu-launch.js && node --check src/emu-lowres.js && node --check src/library-detect.js && node --check src/library.js"
+    "check": "node --check src/core-config.js && node --check src/arcade-compat.js && node --check src/catalog-compat.js && node --check src/emu-launch.js && node --check src/emu-lowres.js && node --check src/library-detect.js && node --check src/library.js && node --check tools/build-test.mjs",
+    "build:test": "node tools/build-test.mjs"
   },
   "devDependencies": {
     "vite": "^7.1.1"
