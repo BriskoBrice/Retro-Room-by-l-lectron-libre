@@ -9,10 +9,12 @@ function loadFinalCatalog() {
   );
 }
 
-test('CPS I stays FBNeo', () => {
+test('CPS I defaults to FBA2012 compatibility core and keeps FBNeo as fallback', () => {
   const { __SYSTEMS } = loadFinalCatalog();
-  assert.equal(__SYSTEMS.cps1.core, 'arcade');
+  assert.equal(__SYSTEMS.cps1.core, 'fbalpha2012_cps1');
   assert.equal(__SYSTEMS.cps1.profile, 'arcade6');
+  assert.equal(__SYSTEMS.cps1fbneo.core, 'arcade');
+  assert.equal(__SYSTEMS.cps1fbneo.profile, 'arcade6');
 });
 
 test('CPS II stays FBA2012 compatibility core', () => {
