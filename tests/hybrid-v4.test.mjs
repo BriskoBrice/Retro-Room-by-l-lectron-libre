@@ -13,9 +13,10 @@ test('index loads hybrid V4 assets around the existing stable runtime', () => {
   assert.ok(index.indexOf('src/hybrid-v4.js') < index.indexOf('src/emu-overlay.js'));
 });
 
-test('hybrid V4 keeps the real dynamic library badge visible over the baked counter', () => {
+test('hybrid V4 keeps the real library badge in the baked counter position', () => {
   assert.match(css, /#libraryBadge\s*\{/);
-  assert.match(css, /display:block!important/);
+  assert.match(css, /top:max\(10px,env\(safe-area-inset-top\)\)/);
+  assert.match(css, /right:max\(12px,env\(safe-area-inset-right\)\)/);
   assert.doesNotMatch(css, /#roomTag,#libraryBadge\s*\{[^}]*display:none/);
 });
 
