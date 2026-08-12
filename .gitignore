@@ -34,7 +34,7 @@ bower_components
 # node-waf configuration
 .lock-wscript
 
-# Compiled binary addons (https://nodejs.org/api/addons.html)
+# Compiled binary addons (https://nodejs.org/api/addons)
 build/Release
 
 # Dependency directories
@@ -70,7 +70,7 @@ web_modules/
 .env.*
 !.env.example
 
-# parcel-bundler cache (https://parceljs.org/)
+# parcel-bundler cache
 .cache
 .parcel-cache
 
@@ -85,9 +85,6 @@ dist
 
 # Gatsby files
 .cache/
-# Comment in the public line in if your project uses Gatsby and not Next.js
-# https://nextjs.org/blog/next-9-1#public-directory-support
-# public
 
 # vuepress build output
 .vuepress/dist
@@ -141,3 +138,14 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# RetroRoom Unity Lab
+unity-lab/[Ll]ibrary/
+unity-lab/[Tt]emp/
+unity-lab/[Oo]bj/
+unity-lab/[Bb]uild/
+unity-lab/[Bb]uilds/
+unity-lab/[Ll]ogs/
+unity-lab/[Uu]ser[Ss]ettings/
+unity-lab/*.csproj
+unity-lab/*.sln
