@@ -27,6 +27,7 @@
     <button class="deckBtn" id="libBtn" type="button">BIBLIO</button>
     <button class="deckBtn" id="fullBtn" type="button">FULL</button>
     <input id="romInput" type="file">
+    <input id="biosInput" type="file" accept=".bin,application/octet-stream" hidden>
     <input id="romFolderInput" type="file" webkitdirectory directory multiple>
   </div>
   <div class="touchGroup" id="dpad">
@@ -59,6 +60,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="/src/core-config.js"></script>
+<script src="/src/bios-support.js"></script>
 <script src="/src/arcade-compat.js"></script>
 <script src="/src/core-room-a.js"></script>
 <script src="/src/core-room-b.js"></script>
