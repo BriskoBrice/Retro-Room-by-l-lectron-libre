@@ -1,0 +1,112 @@
+name: Publish RetroRoom V6.25 CLEAN
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-v625-clean.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download verified release carrier
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --output /tmp/retroom-v625-carrier.png \
+            'https://cdn-editing-temp.picsart.com/editing-temp/9a6e3803-8e42-48e9-83d2-3bbf7a3e5faa.png'
+          echo 'b35f07fc60bc364032be5759e34af4200c0682e5f1524849544536d6bcda671f  /tmp/retroom-v625-carrier.png' | sha256sum -c -
+
+      - name: Extract exact V6.25 CLEAN build
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import gzip, hashlib, struct
+
+          raw = Path('/tmp/retroom-v625-carrier.png').read_bytes()
+          marker = b'RETROOMV625_PAYLOAD\0'
+          pos = raw.rfind(marker)
+          if pos < 0:
+              raise SystemExit('RetroRoom payload marker not found')
+          start = pos + len(marker)
+          size = struct.unpack('>Q', raw[start:start+8])[0]
+          payload = raw[start+8:start+8+size]
+          if len(payload) != size:
+              raise SystemExit('RetroRoom payload is truncated')
+          html = gzip.decompress(payload)
+          expected = '09a0c728f73abeb8bef93178051f64488a506fba72f1f817dd8d9191c2322d07'
+          actual = hashlib.sha256(html).hexdigest()
+          if actual != expected:
+              raise SystemExit(f'Bad RetroRoom SHA256: {actual}')
+          Path('index.html').write_bytes(html)
+          Path('RELEASE_SHA256.txt').write_text(f'RetroRoom V6.25 CLEAN\nSHA256 {actual}\nSIZE {len(html)} bytes\n', encoding='utf-8')
+          print(f'Verified RetroRoom V6.25 CLEAN: {len(html)} bytes, SHA256 {actual}')
+          PY
+
+      - name: Clean repository presentation
+        run: |
+          set -euo pipefail
+          rm -rf docs/superpowers
+          cat > README.md <<'EOF'
+          # Retro Room by L’électron libre
+
+          **RetroRoom V6.25 CLEAN** est la version publique actuelle : une chambre retrogaming 3D immersive inspirée des années 90, avec bibliothèque ROM, contrôles tactiles et émulation multi-systèmes via EmulatorJS.
+
+          ## Utilisation
+
+          1. Télécharge `index.html` ou le dépôt complet.
+          2. Ouvre `index.html` dans un navigateur moderne avec une connexion Internet : RetroRoom charge certains moteurs et fichiers de support depuis des CDN publics.
+          3. Ouvre **BIBLIO**, puis sélectionne ton dossier de ROMs.
+          4. Pour les systèmes qui en ont besoin, sélectionne séparément ton dossier **BIOS**.
+
+          Les ROMs et BIOS ne sont pas fournis dans ce dépôt.
+
+          ## 3DO
+
+          La 3DO utilise le core Opera. RetroRoom gère les jeux au format **CUE + BIN**, injecte les BIN référencés par le CUE et utilise un BIOS Opera sélectionné depuis le dossier BIOS. La région est choisie automatiquement avec un repli sûr sur NTSC quand le nom du jeu ne permet pas de conclure.
+
+          La disposition tactile 3DO a été ajustée pour Android. `Super Street Fighter II Turbo` reçoit automatiquement sa disposition combat 6 boutons et son réglage de performance dédié.
+
+          ## Contrôles tactiles
+
+          Les croix numériques utilisent un **D-pad 8 directions glissable**, diagonales comprises, afin de permettre les quarts de cercle, demi-cercles et autres combinaisons des jeux de combat. Les profils réellement analogiques conservent leur logique dédiée.
+
+          ## État de V6.25 CLEAN
+
+          - interface de diagnostic et logs de développement retirés ;
+          - bouton TEST ROM expérimental retiré ;
+          - bibliothèque et sélection BIOS séparées ;
+          - chaîne 3DO CUE/BIN + BIOS validée ;
+          - région 3DO automatique ;
+          - ergonomie du bouton C 3DO corrigée ;
+          - D-pad numérique 8 directions généralisé ;
+          - aucune ROM ni aucun BIOS distribué.
+
+          Le fichier `RELEASE_SHA256.txt` permet de vérifier l'intégrité de la version publique.
+          EOF
+
+      - name: Verify release files
+        run: |
+          set -euo pipefail
+          echo '09a0c728f73abeb8bef93178051f64488a506fba72f1f817dd8d9191c2322d07  index.html' | sha256sum -c -
+          test "$(wc -c < index.html)" -eq 513328
+          grep -q 'Retro Room V6.25 CLEAN' index.html
+          ! grep -q '3DO DIAG' index.html
+          ! grep -q 'TEST ROM' index.html
+
+      - name: Commit public clean release
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/publish-v625-clean.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'release: RetroRoom V6.25 CLEAN'
+          git push
