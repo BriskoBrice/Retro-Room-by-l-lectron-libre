@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#09070d">
-<title>Retro Room V6.25 CLEAN — L’électron libre</title>
+<title>Retro Room V6.25.1 CLEAN — L’électron libre</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/styles.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/library.css">
 <style>#dirBtn{display:none!important}</style>
@@ -1329,7 +1329,8 @@
   let prefs;
   try{prefs=normalizePrefs(JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'));}catch(_){prefs=normalizePrefs({});}
   let rows=[];
-  let state={tab:prefs.tab||'all',query:'',sort:prefs.sort||'az',page:1};
+  /* V6.25.1 — toujours ouvrir la bibliothèque sur TOUS. */
+  let state={tab:'all',query:'',sort:prefs.sort||'az',page:1};
 
   const SKIP=new Set(['png','jpg','jpeg','gif','webp','bmp','svg','mp4','m4v','webm','mkv','avi','mov','3gp','mp3','ogg','wav','flac','txt','md','nfo','ini','db','pdf','xml','json','log','sav','srm','rtc','ips','ups','bps','cht','bak','tmp','state','thumbnail','nomedia']);
 
@@ -1494,8 +1495,7 @@
       console.warn('RetroRoom 3DO library canonicalization fallback',err);
       libraryFiles=[...files].filter(candidate);
     }
-    rows=libraryFiles.map(entryFromFile);state.page=1;state.query='';search.value='';
-    if(state.tab!=='all'&&state.tab!=='favorites'&&state.tab!=='recent'&&!rows.some(e=>e.systemId===state.tab))state.tab='all';
+    rows=libraryFiles.map(entryFromFile);state.tab='all';state.page=1;state.query='';search.value='';
     savePrefs();renderPlus();
   }
 
