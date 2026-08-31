@@ -1,0 +1,535 @@
+--- a/index.html
++++ b/index.html
+@@ -4,7 +4,7 @@
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+ <meta name="theme-color" content="#09070d">
+-<title>Retro Room V6.25.3 CLEAN EXIT — L’électron libre</title>
++<title>Retro Room V6.26.2 — L’électron libre</title>
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/styles.css">
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/library.css">
+ <style>#dirBtn{display:none!important}</style>
+@@ -722,7 +722,7 @@
+   ]);
+ 
+   const EXTRA_EXTS = {
+-    psx:['chd','pbp','cue','ccd','m3u','img'],
++    psx:['chd','pbp','cue','ccd','m3u','img','toc'],
+     psp:['iso','cso','pbp'],
+     segaCD:['chd','cue','iso','bin'],
+     segaSaturn:['chd','cue','iso','bin'],
+@@ -1197,7 +1197,7 @@
+   const TECH_EXTS=new Set(['txt','md','nfo','ini','db','pdf','xml','json','log','sav','srm','rtc','ips','ups','bps','cht','bak','tmp','state','thumbnail','nomedia']);
+   const MEDIA_DIR_RE=/(^|\/)(images?|covers?|boxarts?|videos?|media|screenshots?|snaps?|manuals?)(\/|$)/i;
+   const TECH_DIR_RE=/(^|\/)(bios|system)(\/|$)/i;
+-  const BIOS_NAME_RE=/^(?:panafz1(?:0)?(?:e-anvil)?(?:-patched|-norsa|-kanji)?|panafz10ja-anvil-kanji|3do_arcade_saot|goldstar|sanyotry)\.bin$/i;
++  const BIOS_NAME_RE=/^(?:(?:panafz1(?:0)?(?:e-anvil)?(?:-patched|-norsa|-kanji)?|panafz10ja-anvil-kanji|3do_arcade_saot|goldstar|sanyotry)\.bin|(?:scph[0-9a-z_-]+|psxonpsp660|ps1_rom|openbios)\.(?:bin|rom|bios|img|dat))$/i;
+ 
+   const extOf=file=>{
+     const p=String(file?.name||'').split('.');
+@@ -1400,7 +1400,7 @@
+     if(/(^|\/)(bios|system|images?|covers?|boxarts?|videos?|media|screenshots?|snaps?|manuals?)(\/|$)/i.test(path)) return false;
+ 
+     // Android peut parfois fournir un chemin incomplet : on filtre aussi les BIOS 3DO connus par NOM.
+-    if(/^(?:panafz1(?:0)?(?:e-anvil)?(?:-patched|-norsa|-kanji)?|panafz10ja-anvil-kanji|3do_arcade_saot|goldstar|sanyotry)\.bin$/i.test(name)) return false;
++    if(/^(?:(?:panafz1(?:0)?(?:e-anvil)?(?:-patched|-norsa|-kanji)?|panafz10ja-anvil-kanji|3do_arcade_saot|goldstar|sanyotry)\.bin|(?:scph[0-9a-z_-]+|psxonpsp660|ps1_rom|openbios)\.(?:bin|rom|bios|img|dat))$/i.test(name)) return false;
+ 
+     return !!ext&&!SKIP.has(ext)&&file.size>0;
+   }
+@@ -1548,6 +1548,9 @@
+     let libraryFiles;
+     try{
+       libraryFiles=await globalThis.__RETROOM_3DO_LIBRARY_FIX__.canonicalize3doDiscFiles(files,{candidate,resolveSystem,extOf});
++      if(globalThis.__RETROOM_PSX_V626__?.canonicalizePsxDiscFiles){
++        libraryFiles=await globalThis.__RETROOM_PSX_V626__.canonicalizePsxDiscFiles(libraryFiles,{candidate,resolveSystem,extOf});
++      }
+     }catch(err){
+       console.warn('RetroRoom 3DO library canonicalization fallback',err);
+       libraryFiles=[...files].filter(candidate);
+@@ -1946,7 +1949,7 @@
+           biosObjectUrl=URL.createObjectURL(bios);
+           window.EJS_biosUrl=biosObjectUrl;
+         }
+-      }else{
++      }else if(!globalThis.__RETROOM_PSX_BUNDLE_READY__){
+         window.EJS_biosUrl='';
+       }
+ 
+@@ -2008,22 +2011,22 @@
+ (() => {
+   'use strict';
+ 
+-  // V6.9 — vrai pad 3DO uniquement. Aucun loader/nightly importé.
++  // V6.26.2 — layout 3DO global validé pour tous les jeux.
+   // Opera: A=Y(1), B=B(0), C=A(8), L=10, R=11, STOP=Select(2), PLAY=Start(3).
+-  if(typeof PROFILES!=='undefined'&&typeof face==='function'&&typeof shoulder==='function'){
++  // Disposition retenue : L • P • R / A • B • C avec STOP au centre.
++  if(typeof PROFILES!=='undefined'&&typeof face==='function'){
+     PROFILES.threeDO={
+       faces:[
++        face('L',10,'six1','compact'),
++        face('P',3,'six2','compact'),
++        face('R',11,'six3','compact'),
+         face('A',1,'six4','compact'),
+         face('B',0,'six5','compact'),
+         face('C',8,'six6','compact')
+       ],
+-      shoulders:[
+-        shoulder('L',10,'left',0),
+-        shoulder('R',11,'right',0)
+-      ],
++      shoulders:[],
+       middle:[
+-        ['STOP',2],
+-        ['PLAY',3]
++        ['STOP',2]
+       ]
+     };
+   }
+@@ -2159,9 +2162,8 @@
+       const all=[...biosFolderInput.files];
+       const recognized=all.filter(f=>OPERA_BIOS_NAMES.has(String(f.name||'').toLowerCase()));
+       globalThis.__RETROOM_V616_BIOS_FILES__=recognized;
+-      if(biosFolderBtn)biosFolderBtn.textContent=recognized.length?`BIOS ${recognized.length} ✓`:'BIOS !';
+-      try{showToast(recognized.length?`BIOS 3DO : ${recognized.length} reconnu(s)`:'Aucun BIOS Opera reconnu dans ce dossier',4200);}catch(_){ }
+-      biosFolderInput.value='';
++      // V6.26 : le gestionnaire BIOS unifié PS1/3DO traite ensuite archives + UI.
++      globalThis.__RETROOM_V626_BIOS_SELECTION__=all;
+     }
+   },true);
+   if(biosFolderBtn&&biosFolderInput)biosFolderBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();biosFolderInput.click();});
+@@ -2182,7 +2184,7 @@
+       try{sid=chooseSystem(file);}catch(_){ }
+       const ext=extOfName(file?.name);
+       if(sid!=='threeDO'||ext!=='cue'){
+-        window.EJS_externalFiles={};
++        if(!globalThis.__RETROOM_PSX_BUNDLE_READY__)window.EJS_externalFiles={};
+         return baseLaunch(file);
+       }
+ 
+@@ -2414,7 +2416,7 @@
+ 
+ 
+ <style id="three-do-fight-clean-v625-style">
+-/* V6.25 — ergonomie 3DO validée + disposition combat Street Fighter. */
++/* V6.26.2 — ergonomie 3DO globale, même layout pour tous les jeux. */
+ #app[data-pad-profile="threeDO"] #actions{
+   right:max(34px, calc(env(safe-area-inset-right) + 20px))!important;
+   touch-action:none!important
+@@ -2422,12 +2424,7 @@
+ #app[data-pad-profile="threeDO"] #actions .roundBtn.compact{
+   width:58px!important;height:58px!important;font-size:13px!important
+ }
+-#app[data-v625-fight="1"] #actions .roundBtn.compact::after{
+-  position:absolute;left:50%;transform:translateX(-50%);width:max-content;max-width:68px;
+-  font:800 6px/1 "Courier New",monospace;letter-spacing:.06em;color:rgba(220,235,228,.56);pointer-events:none
+-}
+-#app[data-v625-fight="1"] #actions .roundBtn:nth-child(-n+3)::after{content:"POING";top:-10px}
+-#app[data-v625-fight="1"] #actions .roundBtn:nth-child(n+4)::after{content:"PIED";bottom:-10px}
++/* libellés POING/PIED retirés : le layout 3DO reste fixe et universel. */
+ #app[data-v625-fight="1"] #middleBtns .miniBtn{min-width:92px}
+ @media (orientation:landscape) and (max-height:600px){
+   #app[data-pad-profile="threeDO"] #actions{right:max(28px, calc(env(safe-area-inset-right) + 16px))!important}
+@@ -2448,17 +2445,11 @@
+   const standardProfile=(typeof PROFILES!=='undefined'&&PROFILES.threeDO)?{
+     faces:[...(PROFILES.threeDO.faces||[])],shoulders:[...(PROFILES.threeDO.shoulders||[])],middle:[...(PROFILES.threeDO.middle||[])]
+   }:null;
+-  const fightProfile=(typeof face==='function')?{
+-    faces:[
+-      face('L',10,'six1','compact'),face('P',3,'six2','compact'),face('R',11,'six3','compact'),
+-      face('A',1,'six4','compact'),face('B',0,'six5','compact'),face('C',8,'six6','compact')
+-    ],
+-    shoulders:[],middle:[['STOP',2]]
+-  }:null;
++  const fightProfile=standardProfile;
+   function applyPadProfile(file){
+-    const fight=!!(isThreeDoFile(file)&&isStreetFighter(file)&&fightProfile);
+-    if(typeof PROFILES!=='undefined'&&standardProfile)PROFILES.threeDO=fight?fightProfile:standardProfile;
+-    const app=document.getElementById('app');if(app)app.dataset.v625Fight=fight?'1':'0';
++    const active=!!(isThreeDoFile(file)&&standardProfile);
++    if(typeof PROFILES!=='undefined'&&standardProfile)PROFILES.threeDO=standardProfile;
++    const app=document.getElementById('app');if(app)app.dataset.v625Fight=active?'0':'0';
+   }
+   const CPU_VALUES={'1.0':'1.0x (12.50Mhz)','1.2':'1.2x (15.00Mhz)'};
+   function resolvedCpu(file){return isStreetFighter(file)?CPU_VALUES['1.2']:CPU_VALUES['1.0'];}
+@@ -2521,6 +2512,130 @@
+ </script>
+ 
+ 
++
++<div id="n64AnalogStick" aria-label="Stick analogique Nintendo 64" aria-hidden="true">
++  <div class="n64StickGate"><div class="n64StickKnob"></div></div>
++</div>
++
++<style id="n64-controller-v6254-style">
++/* V6.25.4 — correction N64 ciblée. Le pad standard du boot reste inchangé. */
++#n64AnalogStick{display:none;position:absolute;left:50%;bottom:calc(var(--safe-bottom) + 10px);width:124px;height:124px;transform:translateX(-50%);z-index:16;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none}
++#app[data-n64-layout="1"] #n64AnalogStick{display:block}
++#n64AnalogStick .n64StickGate{position:absolute;left:50%;top:50%;width:112px;height:112px;transform:translate(-50%,-50%);border-radius:50%;border:2px solid rgba(215,215,225,.32);background:radial-gradient(circle at 50% 44%,rgba(42,44,52,.88),rgba(10,10,15,.92) 72%);box-shadow:inset 0 0 22px rgba(0,0,0,.72),0 6px 14px rgba(0,0,0,.34);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
++#n64AnalogStick .n64StickGate::after{content:"";position:absolute;left:50%;top:50%;width:54px;height:54px;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(255,255,255,.05);box-shadow:0 0 0 14px rgba(255,255,255,.018),0 0 0 28px rgba(0,0,0,.08);pointer-events:none}
++#n64AnalogStick .n64StickKnob{position:absolute;left:50%;top:50%;width:52px;height:52px;transform:translate(-50%,-50%);border-radius:50%;border:2px solid rgba(218,220,228,.46);background:radial-gradient(circle at 36% 30%,rgba(112,116,126,.98) 0%,rgba(64,66,75,.98) 43%,rgba(24,24,30,.99) 100%);box-shadow:inset 5px 5px 9px rgba(255,255,255,.07),inset -7px -9px 12px rgba(0,0,0,.32),0 5px 12px rgba(0,0,0,.42);will-change:transform;pointer-events:none}
++#app[data-n64-layout="1"] #actions [data-n64-face="cup"],
++#app[data-n64-layout="1"] #actions [data-n64-face="cleft"],
++#app[data-n64-layout="1"] #actions [data-n64-face="cright"],
++#app[data-n64-layout="1"] #actions [data-n64-face="cdown"]{width:42px!important;height:42px!important;font-size:9px!important}
++#app[data-n64-layout="1"] #middleBtns #stickModeBtn{display:none!important}
++@media(max-width:760px){
++  #app[data-n64-layout="1"] #n64AnalogStick{bottom:calc(var(--safe-bottom) + 8px);transform:translateX(-50%) scale(.84);transform-origin:center bottom}
++}
++@media(max-width:390px){
++  #app[data-n64-layout="1"] #n64AnalogStick{transform:translateX(-50%) scale(.76)}
++}
++@media(orientation:landscape) and (max-height:600px){
++  #app[data-n64-layout="1"] #n64AnalogStick{bottom:calc(var(--safe-bottom) + 2px);transform:translateX(-50%) scale(.68);transform-origin:center bottom}
++}
++</style>
++
++<script id="n64-controller-v6254-script">
++(() => {
++  'use strict';
++  if(globalThis.__RETROOM_N64_CONTROLLER_V6254__)return;
++  globalThis.__RETROOM_N64_CONTROLLER_V6254__=true;
++  const stick=document.getElementById('n64AnalogStick');
++  const gate=stick?.querySelector('.n64StickGate');
++  const knob=stick?.querySelector('.n64StickKnob');
++  const N64_ANALOG={up:19,left:17,right:16,down:18};
++  let pointerId=null,last={x:0,y:0},lastProfile=null;
++  function n64Active(){try{return currentSystemId==='n64'||activeProfile==='n64';}catch(_){return activeProfile==='n64';}}
++  function setAxis(index,value){try{sendInput(index,Math.max(0,Math.min(1,value)));}catch(_){}}
++  function resetStick(){
++    setAxis(N64_ANALOG.left,0);setAxis(N64_ANALOG.right,0);setAxis(N64_ANALOG.up,0);setAxis(N64_ANALOG.down,0);
++    if(knob)knob.style.transform='translate(-50%,-50%)';last={x:0,y:0};
++  }
++  function updateFromPoint(x,y){
++    if(!gate)return;
++    const r=gate.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
++    let dx=x-cx,dy=y-cy;
++    const max=Math.max(24,Math.min(r.width,r.height)*.34),len=Math.hypot(dx,dy);
++    if(len>max){dx=dx/len*max;dy=dy/len*max;}
++    const nx=dx/max,ny=dy/max;
++    if(knob)knob.style.transform=`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`;
++    setAxis(N64_ANALOG.left,Math.max(0,-nx));setAxis(N64_ANALOG.right,Math.max(0,nx));
++    setAxis(N64_ANALOG.up,Math.max(0,-ny));setAxis(N64_ANALOG.down,Math.max(0,ny));
++    last={x:nx,y:ny};
++  }
++  function down(e){if(!n64Active()||pointerId!==null)return;e.preventDefault();e.stopPropagation();pointerId=e.pointerId;try{stick.setPointerCapture(pointerId)}catch(_){}updateFromPoint(e.clientX,e.clientY);}
++  function move(e){if(pointerId!==e.pointerId)return;e.preventDefault();updateFromPoint(e.clientX,e.clientY);}
++  function up(e){if(pointerId!==e.pointerId)return;e.preventDefault();try{stick.releasePointerCapture(pointerId)}catch(_){}pointerId=null;resetStick();}
++  if(stick){stick.addEventListener('pointerdown',down,{passive:false});stick.addEventListener('pointermove',move,{passive:false});stick.addEventListener('pointerup',up,{passive:false});stick.addEventListener('pointercancel',up,{passive:false});stick.addEventListener('lostpointercapture',e=>{if(pointerId===e.pointerId){pointerId=null;resetStick();}});}
++  function tagN64Faces(){
++    if(!actions)return;
++    const map={'C▲':'cup','C◀':'cleft','C▶':'cright','C▼':'cdown'};
++    [...actions.querySelectorAll('.roundBtn')].forEach(b=>{const key=String(b.textContent||'').trim();if(map[key])b.dataset.n64Face=map[key];else delete b.dataset.n64Face;});
++  }
++  function sync(){
++    let profile='';try{profile=activeProfile||'';}catch(_){profile='';}
++    if(profile===lastProfile&&document.getElementById('app')?.dataset.n64Layout===(profile==='n64'?'1':undefined))return;
++    lastProfile=profile;
++    const appEl=document.getElementById('app');if(!appEl)return;
++    if(profile==='n64'){
++      appEl.dataset.n64Layout='1';
++      // La croix physique reste un D-pad : le stick central gère les axes analogiques.
++      try{directionMode='digital';applyDirectionMode();}catch(_){ }
++      tagN64Faces();
++      stick?.setAttribute('aria-hidden','false');
++    }else{
++      delete appEl.dataset.n64Layout;
++      stick?.setAttribute('aria-hidden','true');
++      resetStick();
++    }
++  }
++  try{new MutationObserver(()=>setTimeout(sync,0)).observe(document.getElementById('app'),{attributes:true,attributeFilter:['data-pad-profile']});}catch(_){ }
++  setInterval(sync,180);setTimeout(sync,0);
++  globalThis.__RETROOM_N64_CONTROLLER_TEST__={N64_ANALOG,n64Active,resetStick};
++})();
++</script>
++
++
+ <script id="clean-exit-v6253-script">
+ (() => {
+   'use strict';
+@@ -2717,6 +2832,286 @@
+   globalThis.__RETROOM_CLEAN_EXIT_TEST__={requestCleanExit,finalizeCleanExit,resetRuntimeState,buildReusableConfig,setReusableRuntime,bootstrapReusableLoader};
+ })();
+ </script>
++
++
++<script id="n64-stick-parent-v6255-fix">
++(() => {
++  'use strict';
++  // V6.25.5 — le stick doit être un enfant de #app : la règle CSS
++  // #app[data-n64-layout="1"] #n64AnalogStick ne peut sinon jamais matcher.
++  const host=document.getElementById('app');
++  const stick=document.getElementById('n64AnalogStick');
++  if(host&&stick&&stick.parentElement!==host)host.appendChild(stick);
++})();
++</script>
++
++
++<script id="psx-support-v626-script">
++(() => {
++  'use strict';
++  if(globalThis.__RETROOM_PSX_V626__)return;
++
++  const pathOf=f=>String(f?.webkitRelativePath||f?.name||'').replace(/\\/g,'/');
++  const extOfName=n=>(String(n||'').split('.').pop()||'').toLowerCase();
++  const basename=p=>String(p||'').replace(/\\/g,'/').split('/').filter(Boolean).pop()||'';
++  const stemOfName=n=>basename(n).replace(/\.[^.]+$/,'');
++  const normalizePath=p=>{
++    const parts=[];
++    for(const raw of String(p||'').replace(/\\/g,'/').split('/')){
++      const part=raw.trim();if(!part||part==='.')continue;if(part==='..'){if(parts.length)parts.pop();continue;}parts.push(part);
++    }
++    return parts.join('/').toLowerCase();
++  };
++  const parentPath=p=>{const n=normalizePath(p);const i=n.lastIndexOf('/');return i>=0?n.slice(0,i):'';};
++  const resolveSibling=(base,ref)=>normalizePath((base?base+'/':'')+String(ref||''));
++  function cueFileReferences(text=''){
++    const out=[];for(const raw of String(text||'').split(/\r?\n/)){
++      const line=raw.trim();let m=line.match(/^FILE\s+"([^"]+)"\s+/i);if(!m)m=line.match(/^FILE\s+([^\s]+)\s+/i);if(m)out.push(m[1].replace(/\\/g,'/'));
++    }return [...new Set(out)];
++  }
++  function isPsxSystem(file,resolveSystem){try{return resolveSystem(file)==='psx';}catch(_){return false;}}
++  async function canonicalizePsxDiscFiles(files,{candidate,resolveSystem,extOf}){
++    const all=[...(files||[])],candidates=all.filter(candidate),byPath=new Map();
++    for(const f of all){const p=normalizePath(pathOf(f));if(p)byPath.set(p,f);}
++    const cueFiles=candidates.filter(f=>extOf(f)==='cue'&&isPsxSystem(f,resolveSystem));
++    const referenced=new Set(),missing=new Set(),auxiliary=new Set();
++    await Promise.all(cueFiles.map(async cue=>{
++      let text='';try{text=await cue.text();}catch(_){return;}
++      const base=parentPath(pathOf(cue));
++      for(const ref of cueFileReferences(text)){
++        const key=resolveSibling(base,ref),file=byPath.get(key);
++        if(file)referenced.add(file);else missing.add(key);
++      }
++      // Les sidecars ne sont jamais des jeux autonomes quand un CUE de même base existe.
++      const cueStem=normalizePath(resolveSibling(base,stemOfName(cue.name)));
++      for(const f of all){
++        const ext=extOf(f);if(!['sbi','sub'].includes(ext))continue;
++        const fp=normalizePath(pathOf(f));const stem=normalizePath(resolveSibling(parentPath(pathOf(f)),stemOfName(f.name)));
++        if(stem===cueStem)auxiliary.add(f);
++      }
++    }));
++    return candidates.filter(f=>{
++      if(!isPsxSystem(f,resolveSystem))return true;
++      if(referenced.has(f)||auxiliary.has(f))return false;
++      const ext=extOf(f);if(['sbi','sub','toc'].includes(ext))return false;
++      return true;
++    });
++  }
++  async function resolvePsxCueBundle(allFiles,cueFile){
++    const byPath=new Map();for(const f of (allFiles||[])){const p=normalizePath(pathOf(f));if(p)byPath.set(p,f);}
++    const base=parentPath(pathOf(cueFile));let text='';try{text=await cueFile.text();}catch(_){text='';}
++    const refs=cueFileReferences(text),found=[],missing=[],externalFiles={};
++    for(const ref of refs){
++      const f=byPath.get(resolveSibling(base,ref));
++      if(f){found.push(f);externalFiles['/'+ref.replace(/^\/+/, '')]=f;externalFiles['/'+basename(ref)]=f;}else missing.push(ref);
++    }
++    // Sidecars utiles à certains dumps protégés.
++    const cueStem=stemOfName(cueFile.name).toLowerCase();
++    for(const f of (allFiles||[])){
++      const ext=extOfName(f.name);if(!['sbi','sub'].includes(ext))continue;
++      if(parentPath(pathOf(f))!==base)continue;
++      const stem=stemOfName(f.name).toLowerCase();if(stem!==cueStem)continue;
++      externalFiles['/'+f.name]=f;
++    }
++    return {refs,files:found,missing,externalFiles};
++  }
++
++  const PSX_RAW_EXTS=new Set(['bin','rom','bios','img','dat']);
++  const ARCHIVE_EXTS=new Set(['zip','7z','rar']);
++  const PSX_PRIORITY=[
++    'psxonpsp660.bin','scph101.bin','scph7001.bin','scph5501.bin','scph1001.bin',
++    'scph5502.bin','scph5500.bin','ps1_rom.bin','openbios.bin'
++  ];
++  const OPERA_RE=/^(?:panafz1(?:0)?(?:e-anvil)?(?:-patched|-norsa|-kanji)?|panafz10ja-anvil-kanji|3do_arcade_saot|goldstar|sanyotry)\.bin$/i;
++  function isBiosArchiveExt(ext=''){return ARCHIVE_EXTS.has(String(ext||'').toLowerCase());}
++  function psxCanonicalName(name=''){
++    const base=basename(name),ext=extOfName(base),stem=stemOfName(base).toLowerCase();
++    if(!PSX_RAW_EXTS.has(ext))return null;
++    if(/^scph[0-9a-z_-]+$/i.test(stem))return stem+'.bin';
++    if(stem==='psxonpsp660')return 'PSXONPSP660.bin';
++    if(stem==='ps1_rom')return 'ps1_rom.bin';
++    if(stem==='openbios')return 'openbios.bin';
++    return null;
++  }
++  function isPsxBiosName(name=''){return !!psxCanonicalName(name);}
++  function normalizePsxBiosFile(file,nameOverride=''){
++    if(!file)return null;
++    const sourceName=nameOverride||file.name||'';
++    const canonical=psxCanonicalName(sourceName);
++    if(!canonical)return null;
++    if(String(file.name||'').toLowerCase()===canonical.toLowerCase())return file;
++    try{return new File([file],canonical,{type:file.type||'application/octet-stream',lastModified:file.lastModified||Date.now()});}
++    catch(_){try{file.name=canonical;}catch(__){}return file;}
++  }
++  function flattenExtracted(entries,out=[]){
++    for(const e of (entries||[])){
++      if(!e)continue;
++      if(e.file)out.push(e);
++      if(Array.isArray(e.children))flattenExtracted(e.children,out);
++    }
++    return out;
++  }
++  function pickPsxBiosFromExtracted(entries){
++    const candidates=[];
++    for(const entry of flattenExtracted(entries)){
++      const name=entry.pathname||entry.filename||entry.file?.name||'';
++      const normalized=normalizePsxBiosFile(entry.file,basename(name));
++      if(normalized)candidates.push(normalized);
++    }
++    return choosePsxBios(candidates);
++  }
++  function choosePsxBios(files){
++    const byName=new Map();
++    for(const f of (files||[])){
++      const normalized=normalizePsxBiosFile(f);
++      if(normalized)byName.set(String(normalized.name||'').toLowerCase(),normalized);
++    }
++    for(const name of PSX_PRIORITY)if(byName.has(name.toLowerCase()))return byName.get(name.toLowerCase());
++    const generic=[...byName.entries()].filter(([n])=>/^scph/.test(n)).sort(([a],[b])=>a.localeCompare(b));
++    return generic[0]?.[1]||[...byName.values()][0]||null;
++  }
++  function collectRecognizedFromExtracted(entries){
++    const psx=[],opera=[];
++    for(const entry of flattenExtracted(entries)){
++      const path=entry.pathname||entry.filename||entry.file?.name||'';
++      const name=basename(path),file=entry.file;
++      const p=normalizePsxBiosFile(file,name);if(p)psx.push(p);
++      if(file&&OPERA_RE.test(name)){
++        if(String(file.name||'').toLowerCase()===name.toLowerCase())opera.push(file);
++        else{try{opera.push(new File([file],name,{type:file.type||'application/octet-stream',lastModified:file.lastModified||Date.now()}));}catch(_){opera.push(file);}}
++      }
++    }
++    return {psx,opera};
++  }
++
++  let archiveRuntimePromise=null;
++  function ensureArchiveRuntime(){
++    if(globalThis.filing?.FilingBrowser)return Promise.resolve(globalThis.filing.FilingBrowser);
++    if(archiveRuntimePromise)return archiveRuntimePromise;
++    archiveRuntimePromise=new Promise((resolve,reject)=>{
++      const existing=document.getElementById('retroom-filing-v626');
++      if(existing){existing.addEventListener('load',()=>resolve(globalThis.filing?.FilingBrowser),{once:true});existing.addEventListener('error',()=>reject(new Error('filing CDN error')),{once:true});return;}
++      const s=document.createElement('script');s.id='retroom-filing-v626';
++      s.src='https://unpkg.com/filing@0.1.2/dist/umd/filing.min.js';s.async=true;
++      s.onload=()=>globalThis.filing?.FilingBrowser?resolve(globalThis.filing.FilingBrowser):reject(new Error('filing unavailable'));
++      s.onerror=()=>reject(new Error('filing CDN error'));
++      document.head.appendChild(s);
++    });
++    return archiveRuntimePromise;
++  }
++  async function extractArchive(file){
++    const FilingBrowser=await ensureArchiveRuntime();
++    const filing=new FilingBrowser({wasmUrl:'https://unpkg.com/filing@0.1.2/dist/esm/wasm/archive.wasm'});
++    return await filing.extract(file);
++  }
++
++  globalThis.__RETROOM_PSX_BIOS_FILES__=globalThis.__RETROOM_PSX_BIOS_FILES__||[];
++  globalThis.__RETROOM_PSX_SCAN_FILES__=globalThis.__RETROOM_PSX_SCAN_FILES__||[];
++  function dedupeFiles(files){
++    const m=new Map();for(const f of (files||[]))if(f)m.set(String(f.name||'').toLowerCase(),f);return [...m.values()];
++  }
++  async function processBiosSelection(all){
++    const psx=[],opera=[];let archiveErrors=0,archives=0;
++    for(const file of (all||[])){
++      const name=String(file?.name||''),ext=extOfName(name);
++      const p=normalizePsxBiosFile(file);if(p)psx.push(p);
++      if(OPERA_RE.test(name))opera.push(file);
++      if(isBiosArchiveExt(ext)){
++        archives++;
++        try{
++          const entries=await extractArchive(file);
++          const got=collectRecognizedFromExtracted(entries);
++          psx.push(...got.psx);opera.push(...got.opera);
++        }catch(err){archiveErrors++;console.warn('RetroRoom BIOS archive',name,err);}
++      }
++    }
++    globalThis.__RETROOM_PSX_BIOS_FILES__=dedupeFiles(psx);
++    globalThis.__RETROOM_V616_BIOS_FILES__=dedupeFiles(opera);
++    return {psx:globalThis.__RETROOM_PSX_BIOS_FILES__,opera:globalThis.__RETROOM_V616_BIOS_FILES__,archives,archiveErrors};
++  }
++
++  const biosInput=document.getElementById('biosFolderInput');
++  const biosBtn=document.getElementById('biosFolderBtn');
++  if(biosInput){
++    document.addEventListener('change',e=>{
++      if(e.target!==biosInput||!biosInput.files?.length)return;
++      const all=[...biosInput.files];
++      if(biosBtn){biosBtn.disabled=true;biosBtn.textContent='BIOS …';}
++      Promise.resolve(processBiosSelection(all)).then(info=>{
++        const total=info.psx.length+info.opera.length;
++        if(biosBtn){biosBtn.disabled=false;biosBtn.textContent=total?`BIOS ${total} ✓`:'BIOS !';biosBtn.title=`3DO ${info.opera.length} • PS1 ${info.psx.length}`;}
++        try{
++          const archiveNote=info.archives?` • archives ${info.archives-info.archiveErrors}/${info.archives}`:'';
++          showToast(total?`BIOS : 3DO ${info.opera.length} • PS1 ${info.psx.length}${archiveNote}`:`Aucun BIOS 3DO/PS1 reconnu${archiveNote}`,4800);
++        }catch(_){ }
++        biosInput.value='';
++      }).catch(()=>{
++        if(biosBtn){biosBtn.disabled=false;biosBtn.textContent='BIOS !';}
++        try{showToast('BIOS : impossible de lire la sélection.',4800);}catch(_){ }
++        biosInput.value='';
++      });
++    },true);
++  }
++
++  document.addEventListener('retroom-fast-folder-scan',e=>{
++    globalThis.__RETROOM_PSX_SCAN_FILES__=e.detail?.allFiles||e.detail?.romFiles||[];
++  });
++
++  function psxBios(){return choosePsxBios(globalThis.__RETROOM_PSX_BIOS_FILES__||[]);}
++  if(typeof launchRom==='function'){
++    const baseLaunch=launchRom;
++    launchRom=function(file){
++      let sid=null;try{sid=chooseSystem(file);}catch(_){ }
++      if(sid!=='psx')return baseLaunch(file);
++      const ext=extOfName(file?.name);
++      const files=globalThis.__RETROOM_PSX_SCAN_FILES__||[];
++      const bios=psxBios();
++      const launchPrepared=(externalFiles={})=>{
++        window.EJS_externalFiles=externalFiles;
++        window.EJS_disableCue=false;
++        window.EJS_biosUrl=bios||'';
++        globalThis.__RETROOM_PSX_BUNDLE_READY__=true;
++        let out;
++        try{
++          out=baseLaunch(file);
++          // V6.26.1 — comme le correctif 3DO : conserver le vrai File .cue
++          // comme média principal. Le Blob URL sans extension peut démarrer
++          // le core PS1 à vide dans le menu RetroArch.
++          if(ext==='cue'){
++            window.EJS_gameUrl=file;
++            window.EJS_disableCue=false;
++          }
++        }finally{globalThis.__RETROOM_PSX_BUNDLE_READY__=false;}
++        return out;
++      };
++      if(ext!=='cue')return launchPrepared({});
++      if(!files.length){
++        try{setStatus('PS1 — RESCAN DOSSIER REQUIS');showToast('PS1 CUE/BIN : rescanne le dossier ROMS avant de lancer.',4800);}catch(_){ }
++        return;
++      }
++      try{setStatus('PS1 — LECTURE CUE + BIN…');}catch(_){ }
++      Promise.resolve(resolvePsxCueBundle(files,file)).then(bundle=>{
++        if(!bundle.refs.length){try{setStatus('PS1 — CUE SANS PISTE');showToast('PS1 : ce CUE ne référence aucun fichier disque.',5000);}catch(_){ }return;}
++        if(bundle.missing.length){try{setStatus('PS1 — FICHIER MANQUANT');showToast(`PS1 : ${bundle.missing.length} fichier(s) référencé(s) introuvable(s).`,5200);}catch(_){ }return;}
++        try{setStatus(`PS1 — ${bundle.files.length} piste(s)${bios?' + BIOS':''} • CHARGEMENT…`);}catch(_){ }
++        return launchPrepared(bundle.externalFiles);
++      }).catch(err=>{
++        console.warn('RetroRoom PSX CUE',err);
++        try{setStatus('PS1 — ERREUR LECTURE CUE');showToast('PS1 : impossible de préparer le CUE/BIN.',5200);}catch(_){ }
++      });
++    };
++  }
++
++  globalThis.__RETROOM_PSX_V626__={canonicalizePsxDiscFiles,resolvePsxCueBundle,processBiosSelection,choosePsxBios};
++  globalThis.__RETROOM_PSX_V626_TEST__={
++    normalizePath,cueFileReferences,canonicalizePsxDiscFiles,resolvePsxCueBundle,
++    isPsxBiosName,isBiosArchiveExt,psxCanonicalName,pickPsxBiosFromExtracted,collectRecognizedFromExtracted,choosePsxBios
++  };
++})();
++</script>
++
+ </body>
+ </html>
+\ No newline at end of file
