@@ -1,0 +1,63 @@
+name: Apply RetroRoom V6.26.2 release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/retro-room-v6262.patch"
+      - ".github/workflows/apply-v6262-release.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply V6.26.2 patch
+        run: |
+          git apply --check .github/retro-room-v6262.patch
+          git apply .github/retro-room-v6262.patch
+
+      - name: Verify release hash and JavaScript syntax
+        run: |
+          test "$(sha256sum index.html | awk '{print $1}')" = "a12673201644966c56dfbb2e5ff9513656a7cc1bd79f9033580b4db65e5cf11e"
+          python3 - <<'PY'
+          import re, subprocess, tempfile, pathlib, os
+          text=pathlib.Path('index.html').read_text(encoding='utf-8')
+          scripts=re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>', text, flags=re.I)
+          checked=0
+          for code in scripts:
+              if not code.strip():
+                  continue
+              fd,path=tempfile.mkstemp(suffix='.js'); os.close(fd)
+              pathlib.Path(path).write_text(code,encoding='utf-8')
+              r=subprocess.run(['node','--check',path],capture_output=True,text=True)
+              os.unlink(path)
+              if r.returncode:
+                  raise SystemExit(r.stderr)
+              checked += 1
+          print(f'inline scripts checked: {checked}')
+          required=['psx-support-v626-script','n64AnalogStick','__RETROOM_CLEAN_EXIT_V6253__',"face('P',3,'six2','compact')"]
+          missing=[x for x in required if x not in text]
+          if missing:
+              raise SystemExit('missing release markers: '+', '.join(missing))
+          if 'content:"POING"' in text or 'content:"PIED"' in text:
+              raise SystemExit('obsolete 3DO fight labels remain')
+          PY
+          npm test
+
+      - name: Commit public V6.26.2 index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "release: RetroRoom V6.26.2"
+          git push origin main
