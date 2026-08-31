@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#09070d">
-<title>Retro Room V6.25.2 FAST SCAN — L’électron libre</title>
+<title>Retro Room V6.25.3 CLEAN EXIT — L’électron libre</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/styles.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/library.css">
 <style>#dirBtn{display:none!important}</style>
@@ -1512,7 +1512,7 @@
     return view;
   }
   function launchEntryPlus(entry){
-    try{if(typeof loaderInjected!=='undefined'&&loaderInjected){closeLibrary();showToast('Une ROM est déjà chargée. NEW recharge Retro Room pour changer de jeu.',4200);return;}}catch(_){}
+    try{if(typeof loaderInjected!=='undefined'&&loaderInjected){closeLibrary();showToast('Une ROM est déjà chargée. Touche QUITTER avant de lancer un autre jeu.',4200);return;}}catch(_){}
     if(!entry?.file){showToast('Rescanne ton dossier ROMs pour relancer ce jeu.',3600);return;}
     try{selectedFile=entry.file;}catch(_){}
     if(!entry.systemId){closeLibrary();systemSelect.value='auto';romName.textContent=entry.file.name.toUpperCase();setStatus('SYSTÈME INCONNU — CHOISIS SYSTEM');showToast('Choisis la console dans SYSTEM puis relance cette ROM.',4200);return;}
@@ -2520,6 +2520,209 @@ globalThis.__RETROOM_V616_ROMS_BIOS_SPLIT__=true;
 })();
 </script>
 
+
+<script id="clean-exit-v6253-script">
+(() => {
+  'use strict';
+  if(globalThis.__RETROOM_CLEAN_EXIT_V6253__) return;
+  globalThis.__RETROOM_CLEAN_EXIT_V6253__=true;
+
+  const romButton=document.getElementById('romBtn');
+  const gameHost=document.getElementById('game');
+  const boot=document.getElementById('bootScreen');
+  const head=document.head;
+  const nativeHeadAppend=head?.appendChild?.bind(head);
+  let exiting=false;
+  let reusableCtor=null;
+  let reusableLocale=null;
+
+  function runtimeActive(){
+    try{return !!(loaderInjected||lowResFrame||window.EJS_emulator);}catch(_){return !!window.EJS_emulator;}
+  }
+  function setQuitLabel(){
+    if(!romButton||exiting)return;
+    if(runtimeActive()&&romButton.textContent!=='QUITTER')romButton.textContent='QUITTER';
+  }
+  function rememberRuntime(emulator){
+    if(!emulator)return;
+    try{if(typeof emulator.constructor==='function')reusableCtor=emulator.constructor;}catch(_){}
+    try{
+      const c=emulator.config||{};
+      if(c.language||c.langJson)reusableLocale={language:c.language,langJson:c.langJson};
+    }catch(_){}
+  }
+  function setReusableRuntime(ctor,locale){
+    reusableCtor=typeof ctor==='function'?ctor:null;
+    reusableLocale=locale||null;
+  }
+  function buildReusableConfig(){
+    const cfg={};
+    cfg.gameUrl=window.EJS_gameUrl;
+    cfg.dataPath=window.EJS_pathtodata;
+    cfg.system=window.EJS_core;
+    cfg.biosUrl=window.EJS_biosUrl;
+    cfg.gameName=window.EJS_gameName;
+    cfg.color=window.EJS_color;
+    cfg.adUrl=window.EJS_AdUrl;
+    cfg.adMode=window.EJS_AdMode;
+    cfg.adTimer=window.EJS_AdTimer;
+    cfg.adSize=window.EJS_AdSize;
+    cfg.alignStartButton=window.EJS_alignStartButton;
+    cfg.VirtualGamepadSettings=window.EJS_VirtualGamepadSettings;
+    cfg.buttonOpts=window.EJS_Buttons;
+    cfg.volume=window.EJS_volume;
+    cfg.defaultControllers=window.EJS_defaultControls;
+    cfg.startOnLoad=window.EJS_startOnLoaded;
+    cfg.fullscreenOnLoad=window.EJS_fullscreenOnLoaded;
+    cfg.filePaths=window.EJS_paths;
+    cfg.loadState=window.EJS_loadStateURL;
+    cfg.cacheLimit=window.EJS_CacheLimit;
+    cfg.cheats=window.EJS_cheats;
+    cfg.defaultOptions=window.EJS_defaultOptions;
+    cfg.gamePatchUrl=window.EJS_gamePatchUrl;
+    cfg.gameParentUrl=window.EJS_gameParentUrl;
+    cfg.netplayUrl=window.EJS_netplayServer;
+    cfg.gameId=window.EJS_gameID;
+    cfg.backgroundImg=window.EJS_backgroundImage;
+    cfg.backgroundBlur=window.EJS_backgroundBlur;
+    cfg.backgroundColor=window.EJS_backgroundColor;
+    cfg.controlScheme=window.EJS_controlScheme;
+    cfg.threads=window.EJS_threads;
+    cfg.disableCue=window.EJS_disableCue;
+    cfg.startBtnName=window.EJS_startButtonName;
+    cfg.softLoad=window.EJS_softLoad;
+    cfg.capture=window.EJS_screenCapture;
+    cfg.externalFiles=window.EJS_externalFiles;
+    cfg.dontExtractBIOS=window.EJS_dontExtractBIOS;
+    cfg.disableDatabases=window.EJS_disableDatabases;
+    cfg.disableLocalStorage=window.EJS_disableLocalStorage;
+    cfg.forceLegacyCores=window.EJS_forceLegacyCores;
+    cfg.noAutoFocus=window.EJS_noAutoFocus;
+    cfg.videoRotation=window.EJS_videoRotation;
+    cfg.hideSettings=window.EJS_hideSettings;
+    cfg.shaders=Object.assign({},window.EJS_SHADERS||{},window.EJS_shaders||{});
+    if(reusableLocale?.language)cfg.language=reusableLocale.language;
+    if(reusableLocale?.langJson)cfg.langJson=reusableLocale.langJson;
+    return cfg;
+  }
+  function wireReusableEvents(emulator){
+    if(!emulator||typeof emulator.on!=='function')return;
+    const pairs=[
+      ['ready',window.EJS_ready],['start',window.EJS_onGameStart],['loadState',window.EJS_onLoadState],
+      ['saveState',window.EJS_onSaveState],['loadSave',window.EJS_onLoadSave],['saveSave',window.EJS_onSaveSave]
+    ];
+    for(const [name,fn] of pairs)if(typeof fn==='function')emulator.on(name,fn);
+    if(typeof window.EJS_onExit==='function')emulator.on('exit',window.EJS_onExit);
+  }
+  function bootstrapReusableLoader(loaderNode){
+    if(!reusableCtor)return false;
+    try{
+      const emulator=new reusableCtor(window.EJS_player,buildReusableConfig());
+      window.EJS_emulator=emulator;
+      window.EJS_adBlocked=(url,del)=>window.EJS_emulator?.adBlocked?.(url,del);
+      wireReusableEvents(emulator);
+      setTimeout(()=>{try{loaderNode?.dispatchEvent?.(new Event('load'));}catch(_){};setQuitLabel();},0);
+      return true;
+    }catch(err){
+      console.warn('RetroRoom CLEAN EXIT runtime reuse failed',err);
+      setTimeout(()=>{try{loaderNode?.dispatchEvent?.(new Event('error'));}catch(_){}},0);
+      return false;
+    }
+  }
+
+  if(head&&nativeHeadAppend){
+    head.appendChild=function(node){
+      if(node?.id==='ejs-loader'&&reusableCtor){
+        // Diffère le bootstrap : les wrappers 3DO finissent d'abord de poser
+        // EJS_gameUrl / BIOS / externalFiles avant qu'on lise la config.
+        setTimeout(()=>bootstrapReusableLoader(node),0);
+        return node;
+      }
+      return nativeHeadAppend(node);
+    };
+  }
+
+  function resetRuntimeState(){
+    try{clearTimeout(watchdog);}catch(_){}
+    try{releaseRomUrl();}catch(_){}
+    try{document.getElementById('ejs-loader')?.remove();}catch(_){}
+    try{if(gameHost)gameHost.innerHTML='';}catch(_){}
+    try{if(boot){boot.style.display='none';boot.innerHTML='';}}catch(_){}
+    try{document.querySelectorAll('.active').forEach(el=>el.classList?.remove('active'));}catch(_){}
+    try{selectedFile=null;}catch(_){}
+    try{currentCore=null;}catch(_){}
+    try{currentSystemId=null;}catch(_){}
+    try{emulatorStarted=false;}catch(_){}
+    try{emulatorReady=false;}catch(_){}
+    try{loaderInjected=false;}catch(_){}
+    try{romObjectUrl=null;}catch(_){}
+    try{lowResFrame=null;}catch(_){}
+    window.EJS_emulator=null;
+    window.EJS_gameUrl=null;
+    window.EJS_gameName='';
+    window.EJS_core=null;
+    window.EJS_biosUrl='';
+    window.EJS_externalFiles={};
+    if(romButton){romButton.disabled=false;romButton.textContent='ROM';}
+    try{romName.textContent='CHOISIS UNE ROM';}catch(_){}
+    try{setStatus('PRÊT — BIBLIO POUR CHANGER DE JEU');}catch(_){}
+    exiting=false;
+  }
+  function finalizeCleanExit(){
+    resetRuntimeState();
+    try{showToast('Émulateur fermé • bibliothèque conservée',2400);}catch(_){}
+  }
+  function requestCleanExit(){
+    if(exiting)return false;
+    if(!runtimeActive())return false;
+    exiting=true;
+    if(romButton){romButton.disabled=true;romButton.textContent='ARRÊT…';}
+    try{setStatus('ARRÊT PROPRE DE L’ÉMULATEUR…');}catch(_){}
+    try{if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen();}catch(_){}
+
+    let wait=80;
+    try{
+      if(lowResFrame){
+        try{lowResFrame.srcdoc='';lowResFrame.remove();}catch(_){}
+        lowResFrame=null;
+      }else{
+        const emulator=window.EJS_emulator;
+        if(emulator){
+          rememberRuntime(emulator);
+          const hasManager=!!emulator.gameManager;
+          if(typeof emulator.callEvent==='function')emulator.callEvent('exit');
+          try{emulator.started=false;}catch(_){}
+          if(hasManager)wait=1250;
+        }
+      }
+    }catch(err){console.warn('RetroRoom CLEAN EXIT',err);}
+    setTimeout(finalizeCleanExit,wait);
+    return true;
+  }
+
+  if(romButton){
+    romButton.addEventListener('click',e=>{
+      if(!runtimeActive()&&!exiting)return;
+      e.preventDefault?.();e.stopImmediatePropagation?.();
+      if(!exiting)requestCleanExit();
+    },true);
+    try{new MutationObserver(setQuitLabel).observe(romButton,{childList:true,subtree:true,characterData:true});}catch(_){}
+  }
+
+  if(typeof launchRom==='function'){
+    const lifecycleBaseLaunch=launchRom;
+    launchRom=function(file){
+      if(exiting){try{showToast('Attends la fin de la fermeture…',1800);}catch(_){};return;}
+      const out=lifecycleBaseLaunch(file);
+      setTimeout(setQuitLabel,0);
+      return out;
+    };
+  }
+
+  globalThis.__RETROOM_CLEAN_EXIT__={quit:requestCleanExit,isExiting:()=>exiting};
+  globalThis.__RETROOM_CLEAN_EXIT_TEST__={requestCleanExit,finalizeCleanExit,resetRuntimeState,buildReusableConfig,setReusableRuntime,bootstrapReusableLoader};
+})();
+</script>
 
 </body>
 </html>

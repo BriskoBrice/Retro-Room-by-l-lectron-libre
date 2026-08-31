@@ -1,6 +1,6 @@
 # Retro Room by L’électron libre
 
-**RetroRoom V6.25.1 CLEAN** est la version publique actuelle : une chambre retrogaming 3D immersive inspirée des années 90, avec bibliothèque ROM, contrôles tactiles et émulation multi-systèmes via EmulatorJS.
+**RetroRoom V6.25.3 CLEAN EXIT** est la version publique actuelle : une chambre retrogaming 3D immersive inspirée des années 90, avec bibliothèque ROM, contrôles tactiles et émulation multi-systèmes via EmulatorJS.
 
 ## Utilisation
 
@@ -21,7 +21,7 @@ La disposition tactile 3DO a été ajustée pour Android. `Super Street Fighter 
 
 Les croix numériques utilisent un **D-pad 8 directions glissable**, diagonales comprises, afin de permettre les quarts de cercle, demi-cercles et autres combinaisons des jeux de combat. Les profils réellement analogiques conservent leur logique dédiée.
 
-## État de V6.25.1 CLEAN
+## État de V6.25.3 CLEAN EXIT
 
 - interface de diagnostic et logs de développement retirés ;
 - bouton TEST ROM expérimental retiré ;
@@ -32,6 +32,7 @@ Les croix numériques utilisent un **D-pad 8 directions glissable**, diagonales 
 - ergonomie du bouton C 3DO corrigée ;
 - D-pad numérique 8 directions généralisé ;
 - scan du dossier optimisé : un seul snapshot, médias ignorés immédiatement, CUE 3DO lus en parallèle ;
+- sortie propre de l’émulateur : **QUITTER → BIBLIO → autre ROM**, sans recharger la page ni rescanner le dossier ;
 - aucune ROM ni aucun BIOS distribué.
 
 Le fichier `RELEASE_SHA256.txt` permet de vérifier l'intégrité de la version publique.
