@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#09070d">
-<title>Retro Room V6.25.1 CLEAN — L’électron libre</title>
+<title>Retro Room V6.25.2 FAST SCAN — L’électron libre</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/styles.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/library.css">
 <style>#dirBtn{display:none!important}</style>
@@ -1189,6 +1189,55 @@
 <script src="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/controls-input.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/controls-init.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/catalog-compat.js"></script>
+<script id="fast-scan-v6252-script">
+(() => {
+  'use strict';
+
+  const MEDIA_EXTS=new Set(['png','jpg','jpeg','gif','webp','bmp','svg','mp4','m4v','webm','mkv','avi','mov','3gp','mp3','ogg','wav','flac']);
+  const TECH_EXTS=new Set(['txt','md','nfo','ini','db','pdf','xml','json','log','sav','srm','rtc','ips','ups','bps','cht','bak','tmp','state','thumbnail','nomedia']);
+  const MEDIA_DIR_RE=/(^|\/)(images?|covers?|boxarts?|videos?|media|screenshots?|snaps?|manuals?)(\/|$)/i;
+  const TECH_DIR_RE=/(^|\/)(bios|system)(\/|$)/i;
+  const BIOS_NAME_RE=/^(?:panafz1(?:0)?(?:e-anvil)?(?:-patched|-norsa|-kanji)?|panafz10ja-anvil-kanji|3do_arcade_saot|goldstar|sanyotry)\.bin$/i;
+
+  const extOf=file=>{
+    const p=String(file?.name||'').split('.');
+    return p.length>1?p.pop().toLowerCase():'';
+  };
+  const pathOf=file=>String(file?.webkitRelativePath||file?.name||'').replace(/\\/g,'/');
+
+  function partition(files){
+    const romFiles=[];
+    let mediaIgnored=0,techIgnored=0,emptyIgnored=0;
+    for(const file of (files||[])){
+      if(!file||!(Number(file.size)>0)){emptyIgnored++;continue;}
+      const ext=extOf(file),path=pathOf(file),name=String(file.name||'').toLowerCase();
+      if(MEDIA_EXTS.has(ext)||MEDIA_DIR_RE.test(path)){mediaIgnored++;continue;}
+      if(TECH_EXTS.has(ext)||TECH_DIR_RE.test(path)||BIOS_NAME_RE.test(name)){techIgnored++;continue;}
+      romFiles.push(file);
+    }
+    return {romFiles,mediaIgnored,techIgnored,emptyIgnored,total:(files?.length??romFiles.length+mediaIgnored+techIgnored+emptyIgnored)};
+  }
+
+  globalThis.__RETROOM_FAST_SCAN_TEST__={partition,extOf,pathOf};
+  if(typeof document==='undefined') return;
+
+  document.addEventListener('change',e=>{
+    const input=document.getElementById('romFolderInput');
+    if(!input||e.target!==input||!input.files?.length)return;
+
+    // Un seul snapshot du FileList Android. On empêche les anciens scanners
+    // de reparcourir séparément les mêmes 1 000+ fichiers.
+    e.stopImmediatePropagation();
+    const allFiles=Array.from(input.files);
+    const part=partition(allFiles);
+    const detail={...part,allFiles,startedAt:performance.now()};
+    globalThis.__RETROOM_FAST_SCAN_STATE__=detail;
+    input.value='';
+
+    setTimeout(()=>document.dispatchEvent(new CustomEvent('retroom-fast-folder-scan',{detail})),0);
+  },true);
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/library-detect.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/library.js"></script>
 
@@ -1237,17 +1286,20 @@
     const auxBins=new Set();
     const cueStemFallbacks=new Set();
 
+    const systemCache=new WeakMap();
     const systemOf=file=>{
-      try{return resolveSystem(file);}catch(_){return null;}
+      if(file&&typeof file==='object'&&systemCache.has(file))return systemCache.get(file);
+      let value=null;
+      try{value=resolveSystem(file);}catch(_){}
+      if(file&&typeof file==='object')systemCache.set(file,value);
+      return value;
     };
 
-    for(const cue of list){
-      if(extOf(cue)!=='cue'||systemOf(cue)!=='threeDO') continue;
-
+    const cues=list.filter(cue=>extOf(cue)==='cue'&&systemOf(cue)==='threeDO');
+    await Promise.all(cues.map(async cue=>{
       const cuePath=normalizePath(pathOf(cue));
       cueStemFallbacks.add(stripExt(cuePath));
       const baseDir=parentPath(cuePath);
-
       try{
         if(typeof cue.text==='function'){
           const text=await cue.text();
@@ -1256,7 +1308,7 @@
       }catch(_){
         // Le fallback même-stem ci-dessous garde la bibliothèque propre si Android refuse la lecture texte.
       }
-    }
+    }));
 
     return list.filter(file=>{
       if(extOf(file)!=='bin'||systemOf(file)!=='threeDO') return true;
@@ -1357,13 +1409,18 @@
     const map={segaGG:'GG',segaMS:'SMS',segaMD:'MD',segaCD:'M-CD',segaSaturn:'SAT',gb:'GB',gba:'GBA',nes:'NES',snes:'SNES',n64:'N64',psx:'PS1',psp:'PSP',ws:'WS',ngp:'NGP',cps1:'CPS1',cps2:'CPS2',cps3:'CPS3',lowresnx:'NX',switch:'NSW'};
     return map[id]||String(id||'???').toUpperCase().slice(0,5);
   }
+  const SYSTEM_CACHE=new WeakMap();
   function resolveSystem(file){
-    const path=file.webkitRelativePath||file.name||'';
+    if(file&&typeof file==='object'&&SYSTEM_CACHE.has(file))return SYSTEM_CACHE.get(file);
+    const path=file?.webkitRelativePath||file?.name||'';
+    let value=null;
     try{
       const smart=globalThis.__SMART_ROM_TEST__?.smartDetectSystem;
-      if(typeof smart==='function')return smart(file.name,path)||null;
+      if(typeof smart==='function')value=smart(file?.name||'',path)||null;
     }catch(_){}
-    try{return detectSystem(file.name)||null;}catch(_){return null;}
+    if(!value){try{value=detectSystem(file?.name||'')||null;}catch(_){}}
+    if(file&&typeof file==='object')SYSTEM_CACHE.set(file,value);
+    return value;
   }
   function prettyName(file){try{return cleanName(file.name).toUpperCase();}catch(_){return String(file.name||'').replace(/\.[^.]+$/,'').toUpperCase();}}
   function entryFromFile(file){
@@ -1499,9 +1556,12 @@
     savePrefs();renderPlus();
   }
 
-  /* Capture document = snapshot FileList avant que library.js remette l'input à vide. */
+  /* FAST SCAN V6.25.2 : Library+ reçoit la liste ROM déjà nettoyée. */
+  document.addEventListener('retroom-fast-folder-scan',e=>{
+    const snapshot=e.detail?.romFiles||[];
+    if(snapshot.length)scanPlus(snapshot).then(()=>openLibraryPlus());
+  });
   document.addEventListener('change',e=>{
-    if(e.target===folderInput&&folderInput.files?.length){const snapshot=[...folderInput.files];setTimeout(()=>scanPlus(snapshot),0);}
     if(e.target===romInput&&romInput.files?.[0]){
       const file=romInput.files[0];const entry=entryFromFile(file);
       setTimeout(()=>{try{if(typeof loaderInjected!=='undefined'&&loaderInjected)rememberRecent(entry);}catch(_){}},700);
@@ -1764,20 +1824,15 @@
   const folderInput=document.getElementById('romFolderInput');
   const root=document.getElementById('libraryContent');
 
-  // Index local covers + BIOS synchronously BEFORE Library+ renders the cards.
-  document.addEventListener('change',e=>{
-    if(e.target!==folderInput || !folderInput.files?.length) return;
-    const files=[...folderInput.files];
-    const s=indexLocalFiles(files);
-
-    setTimeout(()=>{
-      const bios3do=biosFor('threeDO');
-      showToast(
-        `SCAN • ${s.threeDOChd} CHD 3DO • ${s.threeDOImages} images • ${s.threeDOVideos} vidéos masquées • BIOS ${bios3do?bios3do.name.toUpperCase():'MANQUANT'}`,
-        7200
-      );
-    },900);
-  },true);
+  // FAST SCAN : les médias locaux ne bloquent plus l'ouverture de la bibliothèque.
+  // Les jaquettes réseau restent résolues à la demande sur les cartes visibles.
+  document.addEventListener('retroom-fast-folder-scan',e=>{
+    LOCAL_COVERS.clear();
+    BIOS_FILES.clear();
+    const d=e.detail||{};
+    lastScanStats={files:d.total||0,roms:(d.romFiles||[]).length,threeDOChd:0,images:0,threeDOImages:0,videos:d.mediaIgnored||0,threeDOVideos:0,bios:0};
+    setTimeout(()=>showToast(`FAST SCAN • ${(d.romFiles||[]).length} fichiers jeu • ${d.mediaIgnored||0} médias ignorés`,2600),350);
+  });
 
   if(root){
     const cache=new Map();
@@ -2096,10 +2151,10 @@
   const folderInput=document.getElementById('romFolderInput');
   const biosFolderInput=document.getElementById('biosFolderInput');
   const biosFolderBtn=document.getElementById('biosFolderBtn');
+  document.addEventListener('retroom-fast-folder-scan',e=>{
+    globalThis.__RETROOM_V614_SCAN_FILES__=e.detail?.romFiles||[];
+  });
   document.addEventListener('change',e=>{
-    if(e.target===folderInput&&folderInput.files?.length){
-      globalThis.__RETROOM_V614_SCAN_FILES__=[...folderInput.files];
-    }
     if(e.target===biosFolderInput&&biosFolderInput.files?.length){
       const all=[...biosFolderInput.files];
       const recognized=all.filter(f=>OPERA_BIOS_NAMES.has(String(f.name||'').toLowerCase()));

@@ -31,6 +31,7 @@ Les croix numériques utilisent un **D-pad 8 directions glissable**, diagonales 
 - région 3DO automatique ;
 - ergonomie du bouton C 3DO corrigée ;
 - D-pad numérique 8 directions généralisé ;
+- scan du dossier optimisé : un seul snapshot, médias ignorés immédiatement, CUE 3DO lus en parallèle ;
 - aucune ROM ni aucun BIOS distribué.
 
 Le fichier `RELEASE_SHA256.txt` permet de vérifier l'intégrité de la version publique.
