@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - ".github/retro-room-v6262.patch"
+      - ".github/retro-room-v6262-n64.patch"
+      - ".github/retro-room-v6262-psx.patch"
       - ".github/workflows/apply-v6262-release.yml"
 
 permissions:
@@ -21,10 +23,14 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Apply V6.26.2 patch
+      - name: Apply V6.26.2 release patches
         run: |
           git apply --check .github/retro-room-v6262.patch
           git apply .github/retro-room-v6262.patch
+          git apply --check .github/retro-room-v6262-n64.patch
+          git apply .github/retro-room-v6262-n64.patch
+          git apply --check .github/retro-room-v6262-psx.patch
+          git apply .github/retro-room-v6262-psx.patch
 
       - name: Verify release hash and JavaScript syntax
         run: |
