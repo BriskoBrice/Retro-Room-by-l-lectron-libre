@@ -28,7 +28,7 @@
      normalizePath,cueFileReferences,canonicalizePsxDiscFiles,resolvePsxCueBundle,
 -    isPsxBiosName,isBiosArchiveExt,psxCanonicalName,pickPsxBiosFromExtracted,collectRecognizedFromExtracted,choosePsxBios
 +    isPsxBiosName,isBiosArchiveExt,psxCanonicalName,pickPsxBiosFromExtracted,collectRecognizedFromExtracted,choosePsxBios,
-+    ensureJsZipRuntime,extractZipWithJsZip,extractArchive
++    ensureJsZipRuntime,listZipEntriesFast,extractZipSelected,extractArchive
 +  };
 +})();
 +</script>
