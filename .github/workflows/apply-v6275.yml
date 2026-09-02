@@ -36,7 +36,7 @@ jobs:
           cat release/v6275-index.patch.part-* > /tmp/v6275-index.patch
           git apply --check /tmp/v6275-index.patch
           git apply /tmp/v6275-index.patch
-          echo '7a9b908ab09631732d029be11607eb3157efd7013e00a66e973b976f934f8f88  index.html' | sha256sum -c -
+          echo 'b297bea7ce295f545d1b40161fd87776dd0829b3c38ac4002876e53e8c2e5540  index.html' | sha256sum -c -
 
       - name: Install release docs and tests
         shell: bash
@@ -44,7 +44,7 @@ jobs:
           set -euo pipefail
           cp release/README_V6275.md README.md
           cp release/release-v6275.test.cjs tests/release-v6275.test.cjs
-          printf '%s  index.html\n' '7a9b908ab09631732d029be11607eb3157efd7013e00a66e973b976f934f8f88' > RELEASE_SHA256.txt
+          printf '%s  index.html\n' 'b297bea7ce295f545d1b40161fd87776dd0829b3c38ac4002876e53e8c2e5540' > RELEASE_SHA256.txt
 
       - name: Run tests
         run: npm test
