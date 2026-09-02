@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#09070d">
-<title>Retro Room V6.26.2 — L’électron libre</title>
+<title>Retro Room V6.27.5 — L’électron libre</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/styles.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/library.css">
 <style>#dirBtn{display:none!important}</style>
@@ -596,6 +596,12 @@
 }
 </style>
 
+
+<style id="bios-diag-v6272-style">
+#biosDiag{display:none;margin:8px 18px 0;padding:9px 12px;border:1px solid rgba(88,176,124,.24);border-radius:12px;background:rgba(6,18,14,.72);color:#a9edbf;font:700 9px/1.45 "Courier New",monospace;letter-spacing:.06em;text-transform:uppercase}
+#biosDiag.show{display:block}
+#biosDiag.bad{color:#ffd49b;border-color:rgba(255,190,108,.28);background:rgba(28,17,8,.76)}
+</style>
 </head>
 <body>
 <div id="app">
@@ -641,6 +647,7 @@
       <button class="libTool" id="biosFolderBtn" type="button">BIOS</button>
       <button class="libTool" id="closeLibraryBtn" type="button">FERMER</button>
     </div>
+    <div id="biosDiag" aria-live="polite"></div>
     <div id="libraryCrumbs"><button id="libraryBack" type="button">‹ SYSTÈMES</button><span id="libraryCrumbText">Choisis une console</span></div>
     <div id="libraryContent"><div class="libraryEmpty"><b>AUCUN DOSSIER CHARGÉ</b>Touche DOSSIER et sélectionne ton dossier ROM principal.</div></div>
     <div id="libraryFooter">Détection SMART : extension unique → dossier le plus profond → tag système. Les formats communs (.zip, .iso, .bin, .chd…) utilisent le dossier. SYSTEM reste disponible en secours.</div>
@@ -853,6 +860,149 @@
 
   globalThis.__SMART_ROM_TEST__={smartDetectSystem,folderSystem,taggedSystem,matchSegment};
 })();
+</script>
+<script id="retroom-system-catalog-v627">
+(function(root,factory){
+  const api=factory();
+  if(typeof module!=='undefined'&&module.exports)module.exports=api;
+  if(root)root.SystemCatalog=api;
+})(typeof globalThis!=='undefined'?globalThis:this,function(){
+  'use strict';
+  const CATALOG={"a5200":{"label":"ATARI 5200","folders":["atari5200"],"exts":["a52","bin"],"support":"supported"},"adam":{"label":"COLECO ADAM","folders":["adam"],"exts":[],"support":"catalog-only"},"amiga":{"label":"COMMODORE AMIGA","folders":["amiga","amiga1200","amiga600","amigacd32","cdtv"],"exts":["adf","adz","dms","ipf","hdf","lha","cue","ccd","chd","nrg","mds","iso","uae","m3u","zip","7z"],"support":"supported"},"amstrad":{"label":"AMSTRAD CPC","folders":["amstradcpc"],"exts":["dsk","cdt","cpr","voc"],"support":"supported"},"androidapps":{"label":"ANDROID APPS","folders":["androidapps"],"exts":[],"support":"catalog-only"},"androidgames":{"label":"ANDROID GAMES","folders":["androidgames"],"exts":[],"support":"catalog-only"},"apple2":{"label":"APPLE II","folders":["apple2"],"exts":[],"support":"catalog-only"},"apple2gs":{"label":"APPLE IIGS","folders":["apple2gs"],"exts":[],"support":"catalog-only"},"arcade":{"label":"ARCADE — FBNEO","folders":["arcade","fba","fbneo"],"exts":["zip","7z"],"support":"supported"},"arcadia":{"label":"ARCADIA 2001","folders":["arcadia"],"exts":[],"support":"catalog-only"},"archimedes":{"label":"ACORN ARCHIMEDES","folders":["archimedes"],"exts":[],"support":"catalog-only"},"arduboy":{"label":"ARDUBOY","folders":["arduboy"],"exts":[],"support":"catalog-only"},"astrocde":{"label":"BALLY ASTROCADE","folders":["astrocde"],"exts":[],"support":"catalog-only"},"atari2600":{"label":"ATARI 2600","folders":["atari2600"],"exts":["a26","bin"],"support":"supported"},"atari7800":{"label":"ATARI 7800","folders":["atari7800"],"exts":["a78","bin"],"support":"supported"},"atari800":{"label":"ATARI 8-BIT","folders":["atari800"],"exts":[],"support":"catalog-only"},"atarist":{"label":"ATARI ST","folders":["atarist"],"exts":[],"support":"catalog-only"},"atarixe":{"label":"ATARI XE","folders":["atarixe"],"exts":[],"support":"catalog-only"},"atomiswave":{"label":"ATOMISWAVE","folders":["atomiswave"],"exts":[],"support":"catalog-only"},"bbcmicro":{"label":"BBC MICRO","folders":["bbcmicro"],"exts":[],"support":"catalog-only"},"c64":{"label":"COMMODORE 64","folders":["c64"],"exts":["d64","d71","d81","g64","t64","crt","prg","p00"],"support":"supported"},"cdi":{"label":"PHILIPS CD-i","folders":["cdimono1"],"exts":[],"support":"supported"},"chailove":{"label":"CHAI LOVE","folders":["chailove"],"exts":[],"support":"catalog-only"},"channelf":{"label":"FAIRCHILD CHANNEL F","folders":["channelf"],"exts":[],"support":"catalog-only"},"coco":{"label":"TRS-80 COLOR COMPUTER","folders":["coco"],"exts":[],"support":"catalog-only"},"coleco":{"label":"COLECOVISION","folders":["colecovision"],"exts":["col","cv","bin","rom"],"support":"supported"},"consolearcade":{"label":"CONSOLE ARCADE","folders":["consolearcade"],"exts":[],"support":"catalog-only"},"cps":{"label":"CAPCOM CPS","folders":["cps"],"exts":[],"support":"catalog-only"},"cps1":{"label":"CAPCOM CPS I — FBNEO","folders":["cps1"],"exts":["zip","7z"],"support":"supported"},"cps2":{"label":"CAPCOM CPS II — FBNEO","folders":["cps2"],"exts":["zip","7z"],"support":"supported"},"cps3":{"label":"CAPCOM CPS III — FBNEO","folders":["cps3"],"exts":["zip","7z"],"support":"supported"},"crvision":{"label":"CREATIVISION","folders":["crvision"],"exts":[],"support":"catalog-only"},"daphne":{"label":"DAPHNE / LASERDISC","folders":["daphne"],"exts":[],"support":"catalog-only"},"doom":{"label":"DOOM / PRBOOM","folders":["doom"],"exts":["wad","iwad","pwad"],"support":"supported"},"dos":{"label":"DOSBOX PURE","folders":["dos"],"exts":["zip","dosz","conf","exe","bat","com","img","iso"],"support":"supported"},"dragon32":{"label":"DRAGON 32","folders":["dragon32"],"exts":[],"support":"catalog-only"},"dreamcast":{"label":"SEGA DREAMCAST","folders":["dreamcast"],"exts":[],"support":"catalog-only"},"easyrpg":{"label":"EASYRPG","folders":["easyrpg"],"exts":[],"support":"catalog-only"},"electron":{"label":"ACORN ELECTRON","folders":["electron"],"exts":[],"support":"catalog-only"},"emulators":{"label":"EMULATORS","folders":["emulators"],"exts":[],"support":"catalog-only"},"epic":{"label":"EPIC","folders":["epic"],"exts":[],"support":"catalog-only"},"flash":{"label":"FLASH","folders":["flash"],"exts":[],"support":"catalog-only"},"fm7":{"label":"FUJITSU FM-7","folders":["fm7"],"exts":[],"support":"catalog-only"},"fmtowns":{"label":"FUJITSU FM TOWNS","folders":["fmtowns"],"exts":[],"support":"catalog-only"},"gamate":{"label":"BIT CORPORATION GAMATE","folders":["gamate"],"exts":[],"support":"catalog-only"},"gameandwatch":{"label":"GAME & WATCH","folders":["gameandwatch"],"exts":[],"support":"catalog-only"},"gamecom":{"label":"TIGER GAME.COM","folders":["gamecom"],"exts":[],"support":"catalog-only"},"gb":{"label":"GB / GBC","folders":["gb","gbc"],"exts":["gb","gbc","dmg"],"support":"supported"},"gba":{"label":"GAME BOY ADVANCE","folders":["gba"],"exts":["gba","agb","bin"],"support":"supported"},"gc":{"label":"NINTENDO GAMECUBE","folders":["gc"],"exts":[],"support":"catalog-only"},"gmaster":{"label":"HARTUNG GAME MASTER","folders":["gmaster"],"exts":[],"support":"catalog-only"},"gx4000":{"label":"AMSTRAD GX4000","folders":["gx4000"],"exts":[],"support":"catalog-only"},"intellivision":{"label":"INTELLIVISION","folders":["intellivision"],"exts":[],"support":"catalog-only"},"j2me":{"label":"J2ME","folders":["j2me"],"exts":[],"support":"catalog-only"},"jaguar":{"label":"ATARI JAGUAR","folders":["atarijaguar"],"exts":["j64","jag","abs","cof","rom","bin"],"support":"supported"},"laserdisc":{"label":"LASERDISC","folders":["laserdisc"],"exts":[],"support":"catalog-only"},"lcdgames":{"label":"LCD GAMES","folders":["lcdgames"],"exts":[],"support":"catalog-only"},"lowresnx":{"label":"LOWRES NX","folders":["lowresnx"],"exts":["nx"],"support":"supported"},"lutro":{"label":"LUTRO","folders":["lutro"],"exts":[],"support":"catalog-only"},"lynx":{"label":"ATARI LYNX","folders":["atarilynx"],"exts":["lnx","lyx","o"],"support":"supported"},"macintosh":{"label":"MACINTOSH","folders":["macintosh"],"exts":[],"support":"catalog-only"},"mame2003":{"label":"MAME 2003+","folders":["mame"],"exts":["zip","7z"],"support":"supported"},"megaduck":{"label":"MEGA DUCK","folders":["megaduck"],"exts":[],"support":"catalog-only"},"mess":{"label":"MESS","folders":["mess"],"exts":[],"support":"catalog-only"},"model2":{"label":"SEGA MODEL 2","folders":["model2"],"exts":[],"support":"catalog-only"},"model3":{"label":"SEGA MODEL 3","folders":["model3"],"exts":[],"support":"catalog-only"},"moto":{"label":"MOTOROLA","folders":["moto"],"exts":[],"support":"catalog-only"},"msx":{"label":"MSX","folders":["msx"],"exts":[],"support":"catalog-only"},"msx1":{"label":"MSX1","folders":["msx1"],"exts":[],"support":"catalog-only"},"msx2":{"label":"MSX2","folders":["msx2"],"exts":[],"support":"catalog-only"},"msxturbor":{"label":"MSX TURBO R","folders":["msxturbor"],"exts":[],"support":"catalog-only"},"multivision":{"label":"SEGA MULTIVISION","folders":["multivision"],"exts":[],"support":"catalog-only"},"n3ds":{"label":"NINTENDO 3DS","folders":["n3ds"],"exts":[],"support":"catalog-only"},"n64":{"label":"NINTENDO 64","folders":["n64"],"exts":["n64","v64","z64","ndd"],"support":"supported"},"n64dd":{"label":"NINTENDO 64DD","folders":["n64dd"],"exts":[],"support":"catalog-only"},"naomi":{"label":"SEGA NAOMI","folders":["naomi"],"exts":[],"support":"catalog-only"},"naomi2":{"label":"SEGA NAOMI 2","folders":["naomi2"],"exts":[],"support":"catalog-only"},"naomigd":{"label":"SEGA NAOMI GD-ROM","folders":["naomigd"],"exts":[],"support":"catalog-only"},"nds":{"label":"NINTENDO DS","folders":["nds"],"exts":["nds","zip"],"support":"supported"},"neogeo":{"label":"NEO GEO MVS / AES — FBNEO","folders":["neogeo"],"exts":["zip","7z"],"support":"supported"},"neogeocd":{"label":"NEO GEO CD","folders":["neogeocd"],"exts":[],"support":"catalog-only"},"neogeocdjp":{"label":"NEO GEO CD JP","folders":["neogeocdjp"],"exts":[],"support":"catalog-only"},"nes":{"label":"NES / FAMICOM","folders":["famicom","fds","nes"],"exts":["nes","fds","unf","unif"],"support":"supported"},"ngage":{"label":"N-GAGE","folders":["ngage"],"exts":[],"support":"catalog-only"},"ngp":{"label":"NEO GEO POCKET / COLOR","folders":["ngp","ngpc"],"exts":["ngp","ngc","npc"],"support":"supported"},"odyssey2":{"label":"ODYSSEY 2 / VIDEOPAC","folders":["odyssey2"],"exts":[],"support":"catalog-only"},"openbor":{"label":"OPENBOR","folders":["openbor"],"exts":[],"support":"catalog-only"},"oric":{"label":"ORIC","folders":["oric"],"exts":[],"support":"catalog-only"},"palm":{"label":"PALM OS","folders":["palm"],"exts":[],"support":"catalog-only"},"pc":{"label":"PC","folders":["pc"],"exts":[],"support":"catalog-only"},"pc88":{"label":"NEC PC-88","folders":["pc88"],"exts":[],"support":"catalog-only"},"pc98":{"label":"NEC PC-98","folders":["pc98"],"exts":[],"support":"catalog-only"},"pcarcade":{"label":"PC ARCADE","folders":["pcarcade"],"exts":[],"support":"catalog-only"},"pce":{"label":"PC ENGINE / TURBOGRAFX / SUPERGRAFX","folders":["pcengine","pcenginecd","supergrafx","tg-cd","tg16"],"exts":["pce","sgx","cue","ccd","chd","iso"],"support":"supported"},"pcfx":{"label":"NEC PC-FX","folders":["pcfx"],"exts":["cue","ccd","toc","chd","iso","bin"],"support":"supported"},"pico8":{"label":"PICO-8","folders":["pico8"],"exts":[],"support":"catalog-only"},"plus4":{"label":"COMMODORE PLUS/4","folders":["plus4"],"exts":["d64","d71","d81","g64","t64","crt","prg"],"support":"supported"},"pokemini":{"label":"POKÉMON MINI","folders":["pokemini"],"exts":[],"support":"catalog-only"},"ports":{"label":"PORTS","folders":["ports"],"exts":[],"support":"catalog-only"},"ps2":{"label":"PLAYSTATION 2","folders":["ps2"],"exts":[],"support":"catalog-only"},"ps3":{"label":"PLAYSTATION 3","folders":["ps3"],"exts":[],"support":"catalog-only"},"psp":{"label":"PSP","folders":["psp"],"exts":["iso","cso","pbp"],"support":"supported"},"psvita":{"label":"PLAYSTATION VITA","folders":["psvita"],"exts":[],"support":"catalog-only"},"psx":{"label":"PLAYSTATION","folders":["psx"],"exts":["cue","toc","m3u","ccd","exe","pbp","chd","bin","img"],"support":"supported"},"pv1000":{"label":"CASIO PV-1000","folders":["pv1000"],"exts":[],"support":"catalog-only"},"quake":{"label":"QUAKE","folders":["quake"],"exts":[],"support":"catalog-only"},"samcoupe":{"label":"SAM COUPÉ","folders":["samcoupe"],"exts":[],"support":"catalog-only"},"satellaview":{"label":"SATELLAVIEW","folders":["satellaview"],"exts":[],"support":"catalog-only"},"scummvm":{"label":"SCUMMVM","folders":["scummvm"],"exts":[],"support":"catalog-only"},"scv":{"label":"SUPER CASSETTE VISION","folders":["scv"],"exts":[],"support":"catalog-only"},"sega32x":{"label":"SEGA 32X","folders":["sega32x","sega32xjp","sega32xna"],"exts":["32x","bin"],"support":"supported"},"segaCD":{"label":"MEGA-CD / SEGA CD","folders":["megacd","megacdjp","segacd"],"exts":["cue","chd","iso","bin","m3u"],"support":"supported"},"segaGG":{"label":"GAME GEAR","folders":["gamegear"],"exts":["gg"],"support":"supported"},"segaMD":{"label":"MEGA DRIVE / GENESIS","folders":["genesis","megadrive","megadrivejp"],"exts":["md","gen","smd","mdx","68k","sgd","bin"],"support":"supported"},"segaMS":{"label":"MASTER SYSTEM","folders":["mark3","mastersystem","sg-1000"],"exts":["sms","sg","rom","bin"],"support":"supported"},"segaSaturn":{"label":"SEGA SATURN","folders":["saturn","saturnjp"],"exts":["cue","toc","m3u","ccd","chd","iso","bin","mds","zip"],"support":"supported"},"sgb":{"label":"SUPER GAME BOY","folders":["sgb"],"exts":[],"support":"catalog-only"},"snes":{"label":"SNES / SUPER FAMICOM","folders":["sfc","snes","snesna"],"exts":["sfc","smc","swc","fig","bs","st","zip"],"support":"supported"},"spectravideo":{"label":"SPECTRAVIDEO","folders":["spectravideo"],"exts":[],"support":"catalog-only"},"spectrum":{"label":"ZX SPECTRUM","folders":["zxspectrum"],"exts":["z80","rzx","scl","trd","tap","tzx","sna"],"support":"supported"},"steam":{"label":"STEAM","folders":["steam"],"exts":[],"support":"catalog-only"},"stv":{"label":"SEGA ST-V","folders":["stv"],"exts":[],"support":"catalog-only"},"sufami":{"label":"SUFAMI TURBO","folders":["sufami"],"exts":[],"support":"catalog-only"},"supervision":{"label":"WATARA SUPERVISION","folders":["supervision"],"exts":[],"support":"catalog-only"},"supracan":{"label":"FUNTEX SUPRACAN","folders":["supracan"],"exts":[],"support":"catalog-only"},"switch":{"label":"NINTENDO SWITCH","folders":["switch"],"exts":[],"support":"catalog-only"},"symbian":{"label":"SYMBIAN","folders":["symbian"],"exts":[],"support":"catalog-only"},"tanodragon":{"label":"TANO DRAGON","folders":["tanodragon"],"exts":[],"support":"catalog-only"},"threeDO":{"label":"3DO","folders":["3do"],"exts":["cue","chd","iso","bin"],"support":"supported"},"ti99":{"label":"TI-99","folders":["ti99"],"exts":[],"support":"catalog-only"},"tic80":{"label":"TIC-80","folders":["tic80"],"exts":[],"support":"catalog-only"},"to8":{"label":"THOMSON TO8","folders":["to8"],"exts":[],"support":"catalog-only"},"triforce":{"label":"TRIFORCE","folders":["triforce"],"exts":[],"support":"catalog-only"},"type-x":{"label":"TAITO TYPE X","folders":["type-x"],"exts":[],"support":"catalog-only"},"uzebox":{"label":"UZEBOX","folders":["uzebox"],"exts":[],"support":"catalog-only"},"vb":{"label":"VIRTUAL BOY","folders":["virtualboy"],"exts":["vb","vboy"],"support":"supported"},"vectrex":{"label":"VECTREX","folders":["vectrex"],"exts":[],"support":"catalog-only"},"vic20":{"label":"COMMODORE VIC-20","folders":["vic20"],"exts":["d64","d71","d81","g64","t64","crt","prg"],"support":"supported"},"videopac":{"label":"VIDEOPAC","folders":["videopac"],"exts":[],"support":"catalog-only"},"vircon32":{"label":"VIRCON32","folders":["vircon32"],"exts":[],"support":"catalog-only"},"vpinball":{"label":"VISUAL PINBALL","folders":["vpinball"],"exts":[],"support":"catalog-only"},"vsmile":{"label":"V.SMILE","folders":["vsmile"],"exts":[],"support":"catalog-only"},"wasm4":{"label":"WASM-4","folders":["wasm4"],"exts":[],"support":"catalog-only"},"wii":{"label":"NINTENDO WII","folders":["wii"],"exts":[],"support":"catalog-only"},"wiiu":{"label":"NINTENDO WII U","folders":["wiiu"],"exts":[],"support":"catalog-only"},"windows":{"label":"WINDOWS","folders":["windows"],"exts":[],"support":"catalog-only"},"windows3x":{"label":"WINDOWS 3.X","folders":["windows3x"],"exts":[],"support":"catalog-only"},"windows9x":{"label":"WINDOWS 9X","folders":["windows9x"],"exts":[],"support":"catalog-only"},"ws":{"label":"WONDERSWAN / COLOR","folders":["wonderswan","wonderswancolor"],"exts":["ws","wsc","pc2"],"support":"supported"},"x1":{"label":"SHARP X1","folders":["x1"],"exts":[],"support":"catalog-only"},"x68000":{"label":"SHARP X68000","folders":["x68000"],"exts":[],"support":"catalog-only"},"xbox":{"label":"XBOX","folders":["xbox"],"exts":[],"support":"catalog-only"},"xbox360":{"label":"XBOX 360","folders":["xbox360"],"exts":[],"support":"catalog-only"},"zmachine":{"label":"Z-MACHINE","folders":["zmachine"],"exts":[],"support":"catalog-only"},"zx81":{"label":"ZX81","folders":["zx81"],"exts":["p","t81"],"support":"supported"}};
+  const folderToId=new Map();
+  const normalize=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[_\s]+/g,'').trim();
+  for(const [id,entry] of Object.entries(CATALOG)){
+    for(const folder of entry.folders||[])folderToId.set(normalize(folder),id);
+  }
+  function canonicalFromFolder(name){return folderToId.get(normalize(name))||null;}
+  function system(id){return CATALOG[id]||null;}
+  function isKnownFolder(name){return !!canonicalFromFolder(name);}
+  function isGameExtension(id,ext){const e=String(ext||'').toLowerCase().replace(/^\./,'');return !!system(id)?.exts?.includes(e);}
+  function supportState(id){return system(id)?.support||null;}
+  return {CATALOG,canonicalFromFolder,system,isKnownFolder,isGameExtension,supportState,normalize};
+});
+
+</script>
+<script id="retroom-library-scan-v627">
+(function(root,factory){
+  const catalog=(typeof module!=='undefined'&&module.exports)?require('./system-catalog.js'):root.SystemCatalog;
+  const api=factory(catalog);
+  if(typeof module!=='undefined'&&module.exports)module.exports=api;
+  if(root)root.LibraryScan=api;
+})(typeof globalThis!=='undefined'?globalThis:this,function(SystemCatalog){
+  'use strict';
+  const SKIP_EXT=new Set([
+    'png','jpg','jpeg','gif','webp','bmp','svg','mp4','m4v','webm','mkv','avi','mov','3gp','mp3','ogg','wav','flac',
+    'txt','md','nfo','ini','db','pdf','xml','json','log','sav','srm','rtc','ips','ups','bps','cht','bak','tmp','state',
+    'thumbnail','nomedia','sbi','sub'
+  ]);
+  const SKIP_NAMES=new Set(['systeminfo.txt','systems.txt','.nomedia']);
+  const MEDIA_DIRS=new Set(['media','image','images','cover','covers','boxart','boxarts','video','videos','screenshot','screenshots','snap','snaps','manual','manuals']);
+  const normalize=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+  function extOf(file){
+    const name=String(file?.name||'');
+    const i=name.lastIndexOf('.');
+    return i>=0?name.slice(i+1).toLowerCase():'';
+  }
+  function pathSegments(file){
+    return String(file?.webkitRelativePath||file?.relativePath||file?.__relativePath||file?.path||file?.name||'')
+      .replace(/\\/g,'/').split('/').filter(Boolean);
+  }
+  function folderSystem(file){
+    const seg=pathSegments(file);
+    if(seg.length&&/\.[a-z0-9]{1,10}$/i.test(seg[seg.length-1]))seg.pop();
+    for(let i=seg.length-1;i>=0;i--){
+      const id=SystemCatalog?.canonicalFromFolder?.(seg[i]);
+      if(id)return id;
+    }
+    return null;
+  }
+  function isIgnoredPath(file){
+    const seg=pathSegments(file).slice(0,-1).map(normalize);
+    return seg.some(s=>MEDIA_DIRS.has(s));
+  }
+  function isIgnoredFile(file){
+    const name=normalize(file?.name);
+    const ext=extOf(file);
+    return SKIP_NAMES.has(name)||SKIP_EXT.has(ext)||isIgnoredPath(file)||!(Number(file?.size)>0);
+  }
+  function resolveSystem(file,fallbackDetect){
+    const byFolder=folderSystem(file);
+    if(byFolder)return byFolder;
+    if(typeof fallbackDetect==='function'){
+      try{return fallbackDetect(String(file?.name||''))||null;}catch(_){}
+    }
+    return null;
+  }
+  function isGameCandidate(file,fallbackDetect){
+    if(!file||isIgnoredFile(file))return false;
+    return !!resolveSystem(file,fallbackDetect);
+  }
+  return {SKIP_EXT,SKIP_NAMES,MEDIA_DIRS,extOf,pathSegments,folderSystem,isIgnoredPath,isIgnoredFile,resolveSystem,isGameCandidate};
+});
+
+</script>
+<script id="retroom-esde-runtime-v627">
+(() => {
+  'use strict';
+  const catalog=globalThis.SystemCatalog;
+  const scan=globalThis.LibraryScan;
+  if(!catalog||!scan)return;
+
+  try{
+    for(const [id,entry] of Object.entries(catalog.CATALOG||{})){
+      if(typeof SYSTEMS!=='undefined'&&!SYSTEMS[id]){
+        SYSTEMS[id]={
+          label:entry.label||String(id).toUpperCase(),
+          profile:'two',
+          exts:[...(entry.exts||[])],
+          engine:'unsupported'
+        };
+      }else if(typeof SYSTEMS!=='undefined'&&SYSTEMS[id]){
+        if(!Array.isArray(SYSTEMS[id].exts))SYSTEMS[id].exts=[];
+        for(const ext of (entry.exts||[])){
+          if(!SYSTEMS[id].exts.includes(ext))SYSTEMS[id].exts.push(ext);
+        }
+      }
+    }
+  }catch(err){console.warn('RetroRoom ES-DE catalog merge',err);}
+
+  const legacySmart=globalThis.__SMART_ROM_TEST__?.smartDetectSystem;
+  function smartDetectSystem(name='',path=''){
+    const byFolder=scan.folderSystem({
+      name:String(name||''),
+      webkitRelativePath:String(path||''),
+      size:1
+    });
+    if(byFolder)return byFolder;
+    if(typeof legacySmart==='function'){
+      try{return legacySmart(name,path)||null;}catch(_){}
+    }
+    return null;
+  }
+  function folderSystem(path='',name=''){
+    return scan.folderSystem({name:String(name||''),webkitRelativePath:String(path||''),size:1});
+  }
+
+  try{detectSystem=function(name){return smartDetectSystem(name,'');};}catch(_){}
+  try{
+    chooseSystem=function(file){
+      const manual=systemSelect.value;
+      if(manual!=='auto')return manual;
+      const path=file?.webkitRelativePath||file?.relativePath||file?.__relativePath||file?.path||'';
+      return smartDetectSystem(file?.name||'',path);
+    };
+  }catch(_){}
+
+  globalThis.__SMART_ROM_TEST__={
+    ...(globalThis.__SMART_ROM_TEST__||{}),
+    smartDetectSystem,
+    folderSystem,
+    esdeCatalog:true
+  };
+  globalThis.__RETROOM_ESDE_V627__={smartDetectSystem,folderSystem,catalog:catalog.CATALOG};
+})();
+
 </script>
 <script src="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/arcade-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/core-room-a.js"></script>
@@ -2841,6 +2991,159 @@ globalThis.__RETROOM_V616_ROMS_BIOS_SPLIT__=true;
 
 
 
+<script id="retroom-bios-catalog-v627">
+(function(root,factory){
+  const api=factory();
+  if(typeof module!=='undefined'&&module.exports)module.exports=api;
+  if(root)root.BiosCatalog=api;
+})(typeof globalThis!=='undefined'?globalThis:this,function(){
+  'use strict';
+  const CATALOG=[{"id":"panafz1","systems":["threeDO"],"names":["panafz1.bin"],"required":true,"description":"3DO firmware"},{"id":"panafz10","systems":["threeDO"],"names":["panafz10.bin"],"required":true,"description":"3DO firmware"},{"id":"panafz10-norsa","systems":["threeDO"],"names":["panafz10-norsa.bin","panafz10-patched.bin"],"required":true,"description":"3DO firmware"},{"id":"panafz10e-anvil","systems":["threeDO"],"names":["panafz10e-anvil.bin"],"required":true,"description":"3DO firmware"},{"id":"panafz10e-anvil-norsa","systems":["threeDO"],"names":["panafz10e-anvil-norsa.bin","panafz10e-anvil-patched.bin"],"required":true,"description":"3DO firmware"},{"id":"panafz1j","systems":["threeDO"],"names":["panafz1j.bin"],"required":true,"description":"3DO firmware"},{"id":"panafz1j-norsa","systems":["threeDO"],"names":["panafz1j-norsa.bin"],"required":true,"description":"3DO firmware"},{"id":"goldstar","systems":["threeDO"],"names":["goldstar.bin"],"required":true,"description":"3DO firmware"},{"id":"sanyotry","systems":["threeDO"],"names":["sanyotry.bin"],"required":true,"description":"3DO firmware"},{"id":"3do_arcade_saot","systems":["threeDO"],"names":["3do_arcade_saot.bin"],"required":true,"description":"3DO firmware"},{"id":"scph5500","systems":["psx"],"names":["scph5500.bin"],"required":false,"description":"PlayStation BIOS"},{"id":"scph5501","systems":["psx"],"names":["scph5501.bin"],"required":false,"description":"PlayStation BIOS"},{"id":"scph5502","systems":["psx"],"names":["scph5502.bin"],"required":false,"description":"PlayStation BIOS"},{"id":"scph1001","systems":["psx"],"names":["scph1001.bin"],"required":false,"description":"PlayStation BIOS"},{"id":"scph101","systems":["psx"],"names":["scph101.bin"],"required":false,"description":"PlayStation BIOS"},{"id":"scph7001","systems":["psx"],"names":["scph7001.bin"],"required":false,"description":"PlayStation BIOS"},{"id":"psxonpsp660","systems":["psx"],"names":["PSXONPSP660.bin"],"required":false,"description":"PlayStation BIOS"},{"id":"ps1_rom","systems":["psx"],"names":["ps1_rom.bin"],"required":false,"description":"PlayStation BIOS"},{"id":"openbios","systems":["psx"],"names":["openbios.bin"],"required":false,"description":"PlayStation BIOS"},{"id":"gb_bios","systems":["gb"],"names":["gb_bios.bin","dmg_boot.bin"],"required":false,"description":"Game Boy boot ROM"},{"id":"gbc_bios","systems":["gb"],"names":["gbc_bios.bin","cgb_boot.bin"],"required":false,"description":"Game Boy Color boot ROM"},{"id":"gba_bios","systems":["gba"],"names":["gba_bios.bin"],"required":false,"description":"Game Boy Advance BIOS"},{"id":"sgb_bios","systems":["gb"],"names":["sgb_bios.bin"],"required":false,"description":"Super Game Boy BIOS"},{"id":"nds_bios7","systems":["nds"],"names":["bios7.bin"],"required":false,"description":"Nintendo DS ARM7 BIOS"},{"id":"nds_bios9","systems":["nds"],"names":["bios9.bin"],"required":false,"description":"Nintendo DS ARM9 BIOS"},{"id":"nds_firmware","systems":["nds"],"names":["firmware.bin"],"required":false,"description":"Nintendo DS firmware"},{"id":"dsi_bios7","systems":["nds"],"names":["dsi_bios7.bin"],"required":false,"description":"Nintendo DSi firmware"},{"id":"dsi_bios9","systems":["nds"],"names":["dsi_bios9.bin"],"required":false,"description":"Nintendo DSi firmware"},{"id":"dsi_firmware","systems":["nds"],"names":["dsi_firmware.bin"],"required":false,"description":"Nintendo DSi firmware"},{"id":"dsi_nand","systems":["nds"],"names":["dsi_nand.bin"],"required":false,"description":"Nintendo DSi firmware"},{"id":"dsi_sd","systems":["nds"],"names":["dsi_sd_card.bin"],"required":false,"description":"Nintendo DSi firmware"},{"id":"fds_bios","systems":["nes"],"names":["disksys.rom"],"required":true,"description":"Famicom Disk System BIOS"},{"id":"sms_bios","systems":["segaMS"],"names":["bios.sms","bios_E.sms","bios_U.sms","bios_J.sms"],"required":false,"description":"Master System BIOS"},{"id":"gg_bios","systems":["segaGG"],"names":["bios.gg"],"required":false,"description":"Game Gear BIOS"},{"id":"segacd_e","systems":["segaCD"],"names":["bios_CD_E.bin"],"required":true,"description":"Sega CD / Mega-CD BIOS"},{"id":"segacd_u","systems":["segaCD"],"names":["bios_CD_U.bin"],"required":true,"description":"Sega CD / Mega-CD BIOS"},{"id":"segacd_j","systems":["segaCD"],"names":["bios_CD_J.bin"],"required":true,"description":"Sega CD / Mega-CD BIOS"},{"id":"saturn_jp","systems":["segaSaturn"],"names":["sega_101.bin"],"required":true,"description":"Saturn JP BIOS"},{"id":"saturn_us_eu","systems":["segaSaturn"],"names":["mpr-17933.bin"],"required":true,"description":"Saturn US/EU BIOS"},{"id":"saturn_generic","systems":["segaSaturn"],"names":["saturn_bios.bin","kronos/saturn_bios.bin"],"required":false,"description":"Saturn BIOS"},{"id":"stv_bios","systems":["stv"],"names":["kronos/stvbios.zip","stvbios.zip"],"required":true,"description":"ST-V BIOS"},{"id":"saturn_kof95","systems":["segaSaturn"],"names":["mpr-18811-mx.ic1"],"required":false,"description":"Saturn KOF95 cartridge"},{"id":"saturn_ultraman","systems":["segaSaturn"],"names":["mpr-19367-mx.ic1"],"required":false,"description":"Saturn Ultraman cartridge"},{"id":"dreamcast_boot","systems":["dreamcast"],"names":["dc_boot.bin","dc/dc_boot.bin"],"required":false,"description":"Dreamcast BIOS"},{"id":"dreamcast_flash","systems":["dreamcast"],"names":["dc_flash.bin","dc/dc_flash.bin"],"required":false,"description":"Dreamcast flash"},{"id":"naomi","systems":["naomi","naomigd"],"names":["naomi.zip","dc/naomi.zip"],"required":false,"description":"Flycast firmware"},{"id":"naomi2","systems":["naomi2"],"names":["naomi2.zip","dc/naomi2.zip"],"required":false,"description":"Flycast firmware"},{"id":"atomiswave","systems":["atomiswave"],"names":["awbios.zip","dc/awbios.zip"],"required":false,"description":"Flycast firmware"},{"id":"hod2bios","systems":["naomi"],"names":["hod2bios.zip","dc/hod2bios.zip"],"required":false,"description":"Flycast firmware"},{"id":"f355dlx","systems":["naomi"],"names":["f355dlx.zip","dc/f355dlx.zip"],"required":false,"description":"Flycast firmware"},{"id":"f355bios","systems":["naomi"],"names":["f355bios.zip","dc/f355bios.zip"],"required":false,"description":"Flycast firmware"},{"id":"airlbios","systems":["naomi"],"names":["airlbios.zip","dc/airlbios.zip"],"required":false,"description":"Flycast firmware"},{"id":"segasp","systems":["naomi"],"names":["segasp.zip","dc/segasp.zip"],"required":false,"description":"Flycast firmware"},{"id":"syscard3","systems":["pce"],"names":["syscard3.pce"],"required":true,"description":"PC Engine CD system card"},{"id":"syscard2","systems":["pce"],"names":["syscard2.pce"],"required":false,"description":"PC Engine CD system card"},{"id":"syscard1","systems":["pce"],"names":["syscard1.pce"],"required":false,"description":"PC Engine CD system card"},{"id":"gexpress","systems":["pce"],"names":["gexpress.pce"],"required":false,"description":"PC Engine CD system card"},{"id":"pcfx","systems":["pcfx"],"names":["pcfx.rom"],"required":true,"description":"PC-FX BIOS"},{"id":"lynxboot","systems":["lynx"],"names":["lynxboot.img"],"required":true,"description":"Atari Lynx boot ROM"},{"id":"jaguar_cd","systems":["jaguar"],"names":["[BIOS] Atari Jaguar CD (World).j64"],"required":false,"description":"Jaguar CD BIOS"},{"id":"jaguar_cd_dev","systems":["jaguar"],"names":["[BIOS] Atari Jaguar Developer CD (World).j64"],"required":false,"description":"Jaguar CD developer BIOS"},{"id":"atari7800","systems":["atari7800"],"names":["7800 BIOS (U).rom"],"required":false,"description":"Atari 7800 BIOS"},{"id":"ataribas","systems":["atari800","atarixe"],"names":["ATARIBAS.ROM"],"required":true,"description":"Atari BASIC ROM"},{"id":"atariosa","systems":["atari800","atarixe"],"names":["ATARIOSA.ROM"],"required":true,"description":"Atari OS A ROM"},{"id":"atariosb","systems":["atari800","atarixe"],"names":["ATARIOSB.ROM"],"required":true,"description":"Atari OS B ROM"},{"id":"coleco","systems":["coleco"],"names":["colecovision.rom","coleco.rom","BIOS.col"],"required":true,"description":"ColecoVision BIOS"},{"id":"o2rom","systems":["odyssey2","videopac"],"names":["o2rom.bin"],"required":true,"description":"Odyssey2 / Videopac BIOS"},{"id":"videopac_c52","systems":["odyssey2","videopac"],"names":["c52.bin"],"required":true,"description":"Odyssey2 / Videopac BIOS"},{"id":"videopac_g7400","systems":["odyssey2","videopac"],"names":["g7400.bin"],"required":true,"description":"Odyssey2 / Videopac BIOS"},{"id":"videopac_jopac","systems":["odyssey2","videopac"],"names":["jopac.bin"],"required":true,"description":"Odyssey2 / Videopac BIOS"},{"id":"intv_exec","systems":["intellivision"],"names":["exec.bin"],"required":true,"description":"Intellivision executive ROM"},{"id":"intv_grom","systems":["intellivision"],"names":["grom.bin"],"required":true,"description":"Intellivision graphics ROM"},{"id":"msx","systems":["msx","msx1"],"names":["MSX.ROM"],"required":true,"description":"MSX firmware"},{"id":"msx2","systems":["msx2"],"names":["MSX2.ROM"],"required":true,"description":"MSX firmware"},{"id":"msx2ext","systems":["msx2"],"names":["MSX2EXT.ROM"],"required":true,"description":"MSX firmware"},{"id":"msx2p","systems":["msx2"],"names":["MSX2P.ROM"],"required":false,"description":"MSX firmware"},{"id":"msx2pext","systems":["msx2"],"names":["MSX2PEXT.ROM"],"required":false,"description":"MSX firmware"},{"id":"msx_disk","systems":["msx","msx1","msx2","msxturbor"],"names":["DISK.ROM"],"required":false,"description":"MSX firmware"},{"id":"msx_fmpac","systems":["msx","msx1","msx2","msxturbor"],"names":["FMPAC.ROM"],"required":false,"description":"MSX firmware"},{"id":"msxdos2","systems":["msx2","msxturbor"],"names":["MSXDOS2.ROM"],"required":false,"description":"MSX firmware"},{"id":"msx_painter","systems":["msx2"],"names":["PAINTER.ROM"],"required":false,"description":"MSX firmware"},{"id":"msx_kanji","systems":["msx2","msxturbor"],"names":["KANJI.ROM"],"required":false,"description":"MSX firmware"},{"id":"cdi_bios","systems":["cdi"],"names":["cdibios.zip"],"required":true,"description":"Philips CD-i BIOS set"},{"id":"cdi_mono1","systems":["cdi"],"names":["cdimono1.zip"],"required":true,"description":"Philips CD-i mono1 BIOS set"},{"id":"cdi_mono2","systems":["cdi"],"names":["cdimono2.zip"],"required":true,"description":"Philips CD-i mono2 BIOS set"},{"id":"kick31034_a1000","systems":["amiga"],"names":["kick31034.A1000"],"required":false,"description":"Amiga Kickstart"},{"id":"kick32034_a1000","systems":["amiga"],"names":["kick32034.A1000"],"required":false,"description":"Amiga Kickstart"},{"id":"kick33180_a500","systems":["amiga"],"names":["kick33180.A500"],"required":false,"description":"Amiga Kickstart"},{"id":"kick34005_a500","systems":["amiga"],"names":["kick34005.A500"],"required":false,"description":"Amiga Kickstart"},{"id":"kick37175_a500","systems":["amiga"],"names":["kick37175.A500"],"required":false,"description":"Amiga Kickstart"},{"id":"kick37350_a600","systems":["amiga"],"names":["kick37350.A600"],"required":false,"description":"Amiga Kickstart"},{"id":"kick40063_a600","systems":["amiga"],"names":["kick40063.A600"],"required":false,"description":"Amiga Kickstart"},{"id":"kick39106_a1200","systems":["amiga"],"names":["kick39106.A1200"],"required":false,"description":"Amiga Kickstart"},{"id":"kick40068_a1200","systems":["amiga"],"names":["kick40068.A1200"],"required":false,"description":"Amiga Kickstart"},{"id":"kick39106_a4000","systems":["amiga"],"names":["kick39106.A4000"],"required":false,"description":"Amiga Kickstart"},{"id":"kick40068_a4000","systems":["amiga"],"names":["kick40068.A4000"],"required":false,"description":"Amiga Kickstart"},{"id":"kick34005_cdtv","systems":["amiga"],"names":["kick34005.CDTV"],"required":false,"description":"Amiga Kickstart"},{"id":"kick40060_cd32","systems":["amiga"],"names":["kick40060.CD32"],"required":false,"description":"Amiga Kickstart"},{"id":"kick40060_cd32_ext","systems":["amiga"],"names":["kick40060.CD32.ext"],"required":false,"description":"Amiga Kickstart"},{"id":"fbneo_neogeo","systems":["neogeo","arcade"],"names":["neogeo.zip"],"required":false,"description":"FBNeo BIOS romset"},{"id":"fbneo_neocdz","systems":["neogeocd","neogeocdjp"],"names":["neocdz.zip"],"required":false,"description":"FBNeo BIOS romset"},{"id":"fbneo_channelf","systems":["channelf"],"names":["channelf.zip"],"required":false,"description":"FBNeo BIOS romset"},{"id":"fbneo_coleco","systems":["coleco"],"names":["coleco.zip"],"required":false,"description":"FBNeo BIOS romset"},{"id":"fbneo_fds","systems":["nes"],"names":["fdsbios.zip"],"required":false,"description":"FBNeo BIOS romset"},{"id":"fbneo_ngp","systems":["ngp"],"names":["ngp.zip"],"required":false,"description":"FBNeo BIOS romset"},{"id":"fbneo_spectrum","systems":["spectrum"],"names":["spectrum.zip"],"required":false,"description":"FBNeo BIOS romset"},{"id":"fbneo_spec128","systems":["spectrum"],"names":["spec128.zip"],"required":false,"description":"FBNeo BIOS romset"},{"id":"fbneo_spec1282a","systems":["spectrum"],"names":["spec1282a.zip"],"required":false,"description":"FBNeo BIOS romset"},{"id":"panafz1-kanji","systems":["threeDO"],"names":["panafz1-kanji.bin"],"required":true,"description":"3DO firmware"},{"id":"panafz10ja-anvil-kanji","systems":["threeDO"],"names":["panafz10ja-anvil-kanji.bin"],"required":true,"description":"3DO firmware"},{"id":"panafz1j-kanji","systems":["threeDO"],"names":["panafz1j-kanji.bin"],"required":true,"description":"3DO firmware"}];
+  const PREFERENCE={"threeDO":["panafz1","panafz10","panafz10-norsa","panafz10e-anvil","panafz10e-anvil-norsa","panafz1j","panafz1j-norsa","goldstar","sanyotry","3do_arcade_saot","panafz1-kanji","panafz10ja-anvil-kanji","panafz1j-kanji"],"psx":["psxonpsp660","scph101","scph7001","scph5501","scph1001","scph5502","scph5500","ps1_rom","openbios"]};
+  const normalize=v=>String(v||'').replace(/\\/g,'/').toLowerCase().trim();
+  const basename=v=>normalize(v).split('/').pop()||'';
+  function entryMatches(entry,name){
+    const n=normalize(name),b=basename(name);
+    return (entry.names||[]).some(raw=>{
+      const a=normalize(raw);
+      return n===a || b===basename(a);
+    });
+  }
+  function matchFilename(name){return CATALOG.filter(entry=>entryMatches(entry,name));}
+  function matchForSystem(systemId,name){return matchFilename(name).find(entry=>(entry.systems||[]).includes(systemId))||null;}
+  function systemsForFilename(name){
+    const out=new Set();
+    for(const entry of matchFilename(name))for(const sid of (entry.systems||[]))out.add(sid);
+    return [...out];
+  }
+  function entriesFor(systemId){return CATALOG.filter(entry=>(entry.systems||[]).includes(systemId));}
+  function registerEntries(entries){
+    let added=0;
+    for(const incoming of (entries||[])){
+      if(!incoming||!incoming.id)continue;
+      const existing=CATALOG.find(e=>e.id===incoming.id);
+      if(existing){
+        existing.names=[...new Set([...(existing.names||[]),...(incoming.names||[])])];
+        existing.systems=[...new Set([...(existing.systems||[]),...(incoming.systems||[])])];
+        continue;
+      }
+      CATALOG.push({
+        id:String(incoming.id),systems:[...new Set(incoming.systems||[])],
+        names:[...new Set(incoming.names||[])],required:!!incoming.required,
+        description:incoming.description||'RetroArch firmware'
+      });
+      added++;
+    }
+    return added;
+  }
+  function fromRetroBiosPlatforms(data,mapSystem){
+    const item=(data?.items||[]).find(x=>x?.contract?.platform==='RetroArch');
+    const systems=item?.contract?.systems||{};
+    const entries=[];
+    let sourceFiles=0;
+    for(const [sourceId,spec] of Object.entries(systems)){
+      const mapped=(typeof mapSystem==='function'?mapSystem(sourceId,spec):null)||('rb:'+sourceId);
+      for(const file of (spec?.files||[])){
+        const names=[file?.name,file?.destination].filter(Boolean).map(String);
+        if(!names.length)continue;
+        sourceFiles++;
+        const key=normalize(file.destination||file.name).replace(/[^a-z0-9._/-]+/g,'_');
+        entries.push({
+          id:'retrobios:'+sourceId+':'+key,
+          systems:[mapped],names:[...new Set(names)],required:!!file.required,
+          description:'RetroArch • '+(spec?.native_id||sourceId)
+        });
+      }
+    }
+    return {entries,sourceFiles,sourceSystems:Object.keys(systems).length};
+  }
+  return {CATALOG,PREFERENCE,normalize,basename,matchFilename,matchForSystem,systemsForFilename,entriesFor,registerEntries,fromRetroBiosPlatforms};
+});
+
+</script>
+<script id="retroom-bios-index-v627">
+(function(root,factory){
+  const catalog=(typeof module!=='undefined'&&module.exports)?require('./bios-catalog.js'):root.BiosCatalog;
+  const api=factory(catalog);
+  if(typeof module!=='undefined'&&module.exports)module.exports=api;
+  if(root)root.BiosIndex=api;
+})(typeof globalThis!=='undefined'?globalThis:this,function(BiosCatalog){
+  'use strict';
+  const bySystem=new Map();
+
+  function clear(){bySystem.clear();}
+  function store(systemId,entryId,file){
+    if(!bySystem.has(systemId))bySystem.set(systemId,new Map());
+    bySystem.get(systemId).set(entryId,file);
+  }
+  function indexFile(file,nameOverride=''){
+    if(!file)return [];
+    const logicalName=String(nameOverride||file.name||'');
+    const hits=BiosCatalog?.matchFilename?.(logicalName)||[];
+    for(const hit of hits){
+      for(const systemId of (hit.systems||[]))store(systemId,hit.id,file);
+    }
+    return hits;
+  }
+  function indexFiles(files){
+    let matchedFiles=0,matchedEntries=0,total=0;
+    for(const file of Array.from(files||[])){
+      total++;
+      const hits=indexFile(file);
+      if(hits.length){matchedFiles++;matchedEntries+=hits.length;}
+    }
+    return {total,matchedFiles,matchedEntries,coveredSystems:coveredSystems().length};
+  }
+  function flattenExtracted(entries,out=[]){
+    for(const entry of (entries||[])){
+      if(!entry)continue;
+      if(entry.file)out.push(entry);
+      if(Array.isArray(entry.children))flattenExtracted(entry.children,out);
+    }
+    return out;
+  }
+  function indexExtracted(entries){
+    let matchedFiles=0,matchedEntries=0,total=0;
+    for(const entry of flattenExtracted(entries)){
+      total++;
+      const logicalName=entry.pathname||entry.filename||entry.file?.name||'';
+      const hits=indexFile(entry.file,logicalName);
+      if(hits.length){matchedFiles++;matchedEntries+=hits.length;}
+    }
+    return {total,matchedFiles,matchedEntries,coveredSystems:coveredSystems().length};
+  }
+  function entriesForSystem(systemId){return bySystem.get(systemId)||new Map();}
+  function filesFor(systemId){
+    const values=[...entriesForSystem(systemId).values()];
+    return [...new Set(values)];
+  }
+  function hasBios(systemId){return filesFor(systemId).length>0;}
+  function preferredBios(systemId){
+    const map=entriesForSystem(systemId);
+    const order=BiosCatalog?.PREFERENCE?.[systemId]||[];
+    for(const entryId of order){
+      if(map.has(entryId))return map.get(entryId);
+    }
+    return map.values().next().value||null;
+  }
+  function coveredSystems(){return [...bySystem.keys()].filter(id=>bySystem.get(id)?.size);}
+  function matchedEntryCount(){
+    let n=0;for(const map of bySystem.values())n+=map.size;return n;
+  }
+  function matchedFileCount(){
+    const files=new Set();
+    for(const map of bySystem.values())for(const file of map.values())files.add(file);
+    return files.size;
+  }
+  function snapshot(){
+    const systems={};
+    for(const id of coveredSystems())systems[id]=[...entriesForSystem(id).keys()];
+    return {systems,coveredSystems:coveredSystems().length,matchedEntries:matchedEntryCount(),matchedFiles:matchedFileCount()};
+  }
+  return {clear,indexFile,indexFiles,indexExtracted,filesFor,hasBios,preferredBios,coveredSystems,matchedEntryCount,matchedFileCount,snapshot,flattenExtracted};
+});
+
+</script>
 <script id="psx-support-v626-script">
 (() => {
   'use strict';
@@ -2938,7 +3241,7 @@ globalThis.__RETROOM_V616_ROMS_BIOS_SPLIT__=true;
     'psxonpsp660.bin','scph101.bin','scph7001.bin','scph5501.bin','scph1001.bin',
     'scph5502.bin','scph5500.bin','ps1_rom.bin','openbios.bin'
   ];
-  const OPERA_RE=/^(?:panafz1(?:0)?(?:e-anvil)?(?:-patched|-norsa|-kanji)?|panafz10ja-anvil-kanji|3do_arcade_saot|goldstar|sanyotry)\.bin$/i;
+  const OPERA_RE=/^(?:panafz1(?:-kanji)?|panafz10(?:-norsa|-patched)?|panafz10e-anvil(?:-norsa|-patched)?|panafz10ja-anvil-kanji|panafz1j(?:-norsa|-kanji)?|3do_arcade_saot|goldstar|sanyotry)\.bin$/i;
   function isBiosArchiveExt(ext=''){return ARCHIVE_EXTS.has(String(ext||'').toLowerCase());}
   function psxCanonicalName(name=''){
     const base=basename(name),ext=extOfName(base),stem=stemOfName(base).toLowerCase();
@@ -3000,6 +3303,87 @@ globalThis.__RETROOM_V616_ROMS_BIOS_SPLIT__=true;
     return {psx,opera};
   }
 
+  let jsZipRuntimePromise=null;
+  function ensureJsZipRuntime(){
+    if(globalThis.JSZip)return Promise.resolve(globalThis.JSZip);
+    if(jsZipRuntimePromise)return jsZipRuntimePromise;
+    jsZipRuntimePromise=new Promise((resolve,reject)=>{
+      const existing=document.getElementById('retroom-jszip-v6273');
+      if(existing){
+        if(globalThis.JSZip){resolve(globalThis.JSZip);return;}
+        existing.addEventListener('load',()=>globalThis.JSZip?resolve(globalThis.JSZip):reject(new Error('JSZip unavailable')),{once:true});
+        existing.addEventListener('error',()=>reject(new Error('JSZip CDN error')),{once:true});
+        return;
+      }
+      const s=document.createElement('script');s.id='retroom-jszip-v6273';
+      s.src='https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';s.async=true;
+      s.onload=()=>globalThis.JSZip?resolve(globalThis.JSZip):reject(new Error('JSZip unavailable'));
+      s.onerror=()=>reject(new Error('JSZip CDN error'));
+      document.head.appendChild(s);
+    });
+    return jsZipRuntimePromise;
+  }
+  // V6.27.4 — index ZIP ultra-rapide : lit uniquement le répertoire central.
+  // Aucune ROM/BIOS n'est décompressée pour construire l'index global.
+  async function listZipEntriesFast(file){
+    const size=Number(file?.size||0);
+    if(size<22)throw new Error('ZIP trop petit');
+    const tailSize=Math.min(size,65557);
+    const tail=new Uint8Array(await file.slice(size-tailSize,size).arrayBuffer());
+    let eocd=-1;
+    for(let i=tail.length-22;i>=0;i--){
+      if(tail[i]===0x50&&tail[i+1]===0x4b&&tail[i+2]===0x05&&tail[i+3]===0x06){eocd=i;break;}
+    }
+    if(eocd<0)throw new Error('ZIP EOCD introuvable');
+    const tdv=new DataView(tail.buffer,tail.byteOffset,tail.byteLength);
+    const total=tdv.getUint16(eocd+10,true);
+    const centralSize=tdv.getUint32(eocd+12,true);
+    const centralOffset=tdv.getUint32(eocd+16,true);
+    if(centralOffset===0xffffffff||centralSize===0xffffffff||total===0xffff)throw new Error('ZIP64 non pris en charge par index rapide');
+    const central=new Uint8Array(await file.slice(centralOffset,centralOffset+centralSize).arrayBuffer());
+    const dv=new DataView(central.buffer,central.byteOffset,central.byteLength);
+    const decoder=new TextDecoder('utf-8',{fatal:false});
+    const out=[];let p=0,seen=0;
+    while(p+46<=central.length&&seen<total){
+      if(dv.getUint32(p,true)!==0x02014b50)break;
+      const uncompressed=dv.getUint32(p+24,true);
+      const nameLen=dv.getUint16(p+28,true);
+      const extraLen=dv.getUint16(p+30,true);
+      const commentLen=dv.getUint16(p+32,true);
+      if(p+46+nameLen>central.length)break;
+      const pathname=decoder.decode(central.slice(p+46,p+46+nameLen)).replace(/\\/g,'/');
+      if(pathname&&!pathname.endsWith('/')){
+        const name=basename(pathname)||pathname;
+        const stub={name,size:uncompressed,type:'application/octet-stream',lastModified:file?.lastModified||Date.now(),__retroomArchive:file,__retroomArchivePath:pathname};
+        out.push({pathname,filename:pathname,file:stub});
+      }
+      p+=46+nameLen+extraLen+commentLen;seen++;
+    }
+    return out;
+  }
+  function withTimeout(promise,ms,label='opération'){
+    let timer;
+    const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(label+' timeout')),ms);});
+    return Promise.race([promise,timeout]).finally(()=>clearTimeout(timer));
+  }
+  async function extractZipSelected(file,wantedPaths){
+    const wanted=new Set((wantedPaths||[]).map(v=>String(v||'').replace(/\\/g,'/').toLowerCase()));
+    if(!wanted.size)return [];
+    const JSZip=await withTimeout(ensureJsZipRuntime(),8000,'JSZip');
+    const zip=await withTimeout(JSZip.loadAsync(file),8000,'lecture ZIP');
+    const out=[];
+    for(const [pathname,entry] of Object.entries(zip.files||{})){
+      if(!entry||entry.dir||!wanted.has(String(pathname).replace(/\\/g,'/').toLowerCase()))continue;
+      const bytes=await withTimeout(entry.async('uint8array'),8000,'décompression BIOS');
+      const name=basename(pathname)||'bios.bin';
+      let extracted;
+      try{extracted=new File([bytes],name,{type:'application/octet-stream',lastModified:file?.lastModified||Date.now()});}
+      catch(_){extracted=new Blob([bytes],{type:'application/octet-stream'});try{extracted.name=name;}catch(__){}}
+      out.push({pathname:String(pathname||name).replace(/\\/g,'/'),filename:String(pathname||name).replace(/\\/g,'/'),file:extracted});
+    }
+    return out;
+  }
+
   let archiveRuntimePromise=null;
   function ensureArchiveRuntime(){
     if(globalThis.filing?.FilingBrowser)return Promise.resolve(globalThis.filing.FilingBrowser);
@@ -3016,9 +3400,11 @@ globalThis.__RETROOM_V616_ROMS_BIOS_SPLIT__=true;
     return archiveRuntimePromise;
   }
   async function extractArchive(file){
-    const FilingBrowser=await ensureArchiveRuntime();
+    const ext=extOfName(file?.name||'');
+    if(ext==='zip')return await listZipEntriesFast(file);
+    const FilingBrowser=await withTimeout(ensureArchiveRuntime(),8000,'filing');
     const filing=new FilingBrowser({wasmUrl:'https://unpkg.com/filing@0.1.2/dist/esm/wasm/archive.wasm'});
-    return await filing.extract(file);
+    return await withTimeout(filing.extract(file),12000,'archive '+ext.toUpperCase());
   }
 
   globalThis.__RETROOM_PSX_BIOS_FILES__=globalThis.__RETROOM_PSX_BIOS_FILES__||[];
@@ -3026,43 +3412,131 @@ globalThis.__RETROOM_V616_ROMS_BIOS_SPLIT__=true;
   function dedupeFiles(files){
     const m=new Map();for(const f of (files||[]))if(f)m.set(String(f.name||'').toLowerCase(),f);return [...m.values()];
   }
+
+  const RETROBIOS_PLATFORM_API='https://abdess.github.io/retrobios/api/v1/platforms.json';
+  let retroBiosCatalogPromise=null;
+  function mapRetroBiosSystem(sourceId=''){
+    const raw=String(sourceId||'').toLowerCase();
+    const direct={
+      '3do':'threeDO','playstation':'psx','sony-playstation':'psx',
+      'playstation-portable':'psp','sony-playstation-portable':'psp',
+      'sega-saturn':'segaSaturn','saturn':'segaSaturn','sega-dreamcast':'dreamcast','dreamcast':'dreamcast',
+      'sega-cd':'segaCD','mega-cd':'segaCD','sega-mega-cd':'segaCD',
+      'pc-engine-cd':'pce','nec-pc-engine-cd':'pce','pc-fx':'pcfx','nec-pc-fx':'pcfx',
+      'atari-lynx':'lynx','atari-jaguar':'jaguar','nintendo-ds':'nds','nintendo-game-boy-advance':'gba',
+      'nintendo-game-boy':'gb','nintendo-game-boy-color':'gb','nintendo-64':'n64',
+      'neo-geo-pocket':'ngp','neo-geo-pocket-color':'ngp','wonderswan':'ws','wonderswan-color':'ws',
+      'commodore-amiga':'amiga','commodore-64':'c64','zx-spectrum':'spectrum','amstrad-cpc':'amstrad'
+    };
+    if(direct[raw])return direct[raw];
+    const candidates=[raw,raw.replace(/^(sony|sega|nintendo|nec|atari|commodore)-/,''),raw.replace(/-/g,'')];
+    for(const c of candidates){
+      try{const hit=globalThis.SystemCatalog?.canonicalFromFolder?.(c);if(hit)return hit;}catch(_){ }
+    }
+    return 'rb:'+raw;
+  }
+  async function ensureRetroBiosCatalog(){
+    if(retroBiosCatalogPromise)return retroBiosCatalogPromise;
+    retroBiosCatalogPromise=(async()=>{
+      const response=await fetch(RETROBIOS_PLATFORM_API,{cache:'no-store'});
+      if(!response.ok)throw new Error('RetroBIOS HTTP '+response.status);
+      const data=await response.json();
+      const parsed=globalThis.BiosCatalog?.fromRetroBiosPlatforms?.(data,mapRetroBiosSystem);
+      if(!parsed?.entries?.length)throw new Error('RetroBIOS catalogue vide');
+      const added=globalThis.BiosCatalog?.registerEntries?.(parsed.entries)||0;
+      return {ok:true,added,sourceFiles:parsed.sourceFiles||0,sourceSystems:parsed.sourceSystems||0};
+    })().catch(err=>({ok:false,error:String(err?.message||err),added:0,sourceFiles:0,sourceSystems:0}));
+    return retroBiosCatalogPromise;
+  }
+  globalThis.__RETROOM_BIOS_REMOTE_TEST__={mapRetroBiosSystem,ensureRetroBiosCatalog,api:RETROBIOS_PLATFORM_API};
+
   async function processBiosSelection(all){
-    const psx=[],opera=[];let archiveErrors=0,archives=0;
+    const psx=[],opera=[];let archiveErrors=0,archives=0,archivesIndexed=0,legacyArchiveErrors=0;
+    // V6.27.4 — indexe les ZIP par leur répertoire central sans décompresser.
+    // Seuls les BIOS PS1/3DO réellement nécessaires au runtime sont extraits ensuite.
+    const remoteCatalog=await ensureRetroBiosCatalog();
+    try{globalThis.BiosIndex?.clear();}catch(_){}
     for(const file of (all||[])){
       const name=String(file?.name||''),ext=extOfName(name);
+      try{globalThis.BiosIndex?.indexFile?.(file,file?.webkitRelativePath||file?.name||'');}catch(_){}
       const p=normalizePsxBiosFile(file);if(p)psx.push(p);
       if(OPERA_RE.test(name))opera.push(file);
       if(isBiosArchiveExt(ext)){
         archives++;
         try{
           const entries=await extractArchive(file);
-          const got=collectRecognizedFromExtracted(entries);
-          psx.push(...got.psx);opera.push(...got.opera);
-        }catch(err){archiveErrors++;console.warn('RetroRoom BIOS archive',name,err);}
+          archivesIndexed++;
+          try{globalThis.BiosIndex?.indexExtracted(entries);}catch(_){}
+          if(ext==='zip'){
+            const wanted=flattenExtracted(entries)
+              .map(entry=>entry.pathname||entry.filename||entry.file?.name||'')
+              .filter(path=>isPsxBiosName(path)||OPERA_RE.test(basename(path)));
+            if(wanted.length){
+              try{
+                const realEntries=await extractZipSelected(file,wanted);
+                const got=collectRecognizedFromExtracted(realEntries);
+                psx.push(...got.psx);opera.push(...got.opera);
+              }catch(err){
+                legacyArchiveErrors++;
+                console.warn('RetroRoom BIOS runtime extraction',name,err);
+              }
+            }
+          }else{
+            const got=collectRecognizedFromExtracted(entries);
+            psx.push(...got.psx);opera.push(...got.opera);
+          }
+        }catch(err){archiveErrors++;console.warn('RetroRoom BIOS archive index',name,err);}
       }
     }
     globalThis.__RETROOM_PSX_BIOS_FILES__=dedupeFiles(psx);
     globalThis.__RETROOM_V616_BIOS_FILES__=dedupeFiles(opera);
-    return {psx:globalThis.__RETROOM_PSX_BIOS_FILES__,opera:globalThis.__RETROOM_V616_BIOS_FILES__,archives,archiveErrors};
+    const globalBios=globalThis.BiosIndex?.snapshot?.()||{matchedFiles:0,coveredSystems:0,matchedEntries:0,systems:{}};
+    globalThis.__RETROOM_GLOBAL_BIOS_V627__={index:globalThis.BiosIndex||null,snapshot:globalBios};
+    return {psx:globalThis.__RETROOM_PSX_BIOS_FILES__,opera:globalThis.__RETROOM_V616_BIOS_FILES__,archives,archivesIndexed,archiveErrors,legacyArchiveErrors,globalBios,remoteCatalog};
   }
 
   const biosInput=document.getElementById('biosFolderInput');
   const biosBtn=document.getElementById('biosFolderBtn');
+  const biosDiag=document.getElementById('biosDiag');
   if(biosInput){
     document.addEventListener('change',e=>{
       if(e.target!==biosInput||!biosInput.files?.length)return;
       const all=[...biosInput.files];
       if(biosBtn){biosBtn.disabled=true;biosBtn.textContent='BIOS …';}
       Promise.resolve(processBiosSelection(all)).then(info=>{
-        const total=info.psx.length+info.opera.length;
-        if(biosBtn){biosBtn.disabled=false;biosBtn.textContent=total?`BIOS ${total} ✓`:'BIOS !';biosBtn.title=`3DO ${info.opera.length} • PS1 ${info.psx.length}`;}
+        const globalInfo=info.globalBios||{matchedFiles:0,coveredSystems:0};
+        const legacyTotal=info.psx.length+info.opera.length;
+        const total=Math.max(globalInfo.matchedFiles||0,legacyTotal);
+        const covered=new Set(globalThis.BiosIndex?.coveredSystems?.()||[]);
+        if(info.psx.length)covered.add('psx');
+        if(info.opera.length)covered.add('threeDO');
+        const coveredSystems=Math.max(globalInfo.coveredSystems||0,covered.size);
+        if(biosBtn){
+          biosBtn.disabled=false;
+          biosBtn.textContent=total?`BIOS ${total} ✓`:'BIOS !';
+          biosBtn.title=`${total} fichiers reconnus • ${coveredSystems} systèmes couverts • 3DO ${info.opera.length} • PS1 ${info.psx.length} • ${info.remoteCatalog?.ok?'RetroArch '+info.remoteCatalog.sourceFiles:'registre local'}`;
+        }
+        if(biosDiag){
+          const source=info.remoteCatalog?.ok
+            ? `RETROARCH ${info.remoteCatalog.sourceFiles}`
+            : `REGISTRE LOCAL${info.remoteCatalog?.error?' • '+String(info.remoteCatalog.error).slice(0,90):''}`;
+          const archiveTxt=info.archives?` • ARCHIVES INDEXÉES ${info.archivesIndexed||0}/${info.archives}`:'';
+          biosDiag.textContent=`BIOS ${total} RECONNUS • ${coveredSystems} SYSTÈMES • SÉLECTION ${all.length} FICHIERS${archiveTxt} • ${source}`;
+          biosDiag.classList.add('show');
+          biosDiag.classList.toggle('bad',!info.remoteCatalog?.ok);
+        }
         try{
-          const archiveNote=info.archives?` • archives ${info.archives-info.archiveErrors}/${info.archives}`:'';
-          showToast(total?`BIOS : 3DO ${info.opera.length} • PS1 ${info.psx.length}${archiveNote}`:`Aucun BIOS 3DO/PS1 reconnu${archiveNote}`,4800);
+          const archiveNote=info.archives?` • archives indexées ${info.archivesIndexed||0}/${info.archives}`:'';
+          const registryNote=info.remoteCatalog?.ok?` • registre RetroArch ${info.remoteCatalog.sourceFiles}`:' • registre local';
+          showToast(total?`BIOS : ${total} fichiers reconnus • ${coveredSystems} systèmes couverts${archiveNote}${registryNote}`:`Aucun BIOS reconnu${archiveNote}${registryNote}`,6200);
         }catch(_){ }
         biosInput.value='';
-      }).catch(()=>{
+      }).catch(err=>{
         if(biosBtn){biosBtn.disabled=false;biosBtn.textContent='BIOS !';}
+        if(biosDiag){
+          biosDiag.textContent=`BIOS : ERREUR DE SCAN • ${String(err?.message||err||'inconnue').slice(0,120)}`;
+          biosDiag.classList.add('show','bad');
+        }
         try{showToast('BIOS : impossible de lire la sélection.',4800);}catch(_){ }
         biosInput.value='';
       });
@@ -3121,8 +3595,75 @@ globalThis.__RETROOM_V616_ROMS_BIOS_SPLIT__=true;
   globalThis.__RETROOM_PSX_V626__={canonicalizePsxDiscFiles,resolvePsxCueBundle,processBiosSelection,choosePsxBios};
   globalThis.__RETROOM_PSX_V626_TEST__={
     normalizePath,cueFileReferences,canonicalizePsxDiscFiles,resolvePsxCueBundle,
-    isPsxBiosName,isBiosArchiveExt,psxCanonicalName,pickPsxBiosFromExtracted,collectRecognizedFromExtracted,choosePsxBios
+    isPsxBiosName,isBiosArchiveExt,psxCanonicalName,pickPsxBiosFromExtracted,collectRecognizedFromExtracted,choosePsxBios,
+    ensureJsZipRuntime,listZipEntriesFast,extractZipSelected,extractArchive
   };
+})();
+</script>
+
+
+<style id="virtualboy-pad-v6274-style">
+#vbRightPad{
+  display:none;position:absolute;z-index:16;
+  right:max(14px,env(safe-area-inset-right));
+  bottom:calc(var(--safe-bottom) + 8px);
+  width:154px;height:154px;pointer-events:auto;user-select:none;-webkit-user-select:none
+}
+#app[data-pad-profile="virtualboy"] #vbRightPad{display:block}
+#app[data-pad-profile="virtualboy"] #actions{
+  left:50%!important;right:auto!important;width:150px!important;
+  bottom:calc(var(--safe-bottom) + 8px)!important;
+  transform:translateX(-50%)!important;transform-origin:center bottom!important
+}
+#app[data-pad-profile="virtualboy"] #actions .roundBtn{border-color:rgba(225,80,90,.58)}
+#app[data-pad-profile="virtualboy"] #actions .roundBtn.active{border-color:rgba(255,115,167,.92)}
+@media(max-width:760px){
+  #app[data-pad-profile="virtualboy"] #vbRightPad{transform:scale(.84);transform-origin:right bottom}
+  #app[data-pad-profile="virtualboy"] #actions{transform:translateX(-50%) scale(.84)!important}
+}
+@media(max-width:390px){
+  #app[data-pad-profile="virtualboy"] #vbRightPad{transform:scale(.76)}
+  #app[data-pad-profile="virtualboy"] #actions{transform:translateX(-50%) scale(.76)!important}
+}
+@media(orientation:landscape) and (max-height:600px){
+  #app[data-pad-profile="virtualboy"] #vbRightPad{bottom:calc(var(--safe-bottom) + 2px);transform:scale(.66);transform-origin:right bottom}
+  #app[data-pad-profile="virtualboy"] #actions{bottom:calc(var(--safe-bottom) + 2px)!important;transform:translateX(-50%) scale(.68)!important}
+}
+</style>
+<script id="virtualboy-pad-v6274-script">
+(() => {
+  'use strict';
+  if(globalThis.__RETROOM_VB_PAD_V6274__)return;
+  globalThis.__RETROOM_VB_PAD_V6274__=true;
+  if(typeof SYSTEMS==='undefined'||typeof PROFILES==='undefined'||typeof face!=='function'||typeof updateController!=='function')return;
+
+  SYSTEMS.vb.profile='virtualboy';
+  try{FACE_POS.vbA=[18,92];FACE_POS.vbB=[80,42];}catch(_){}
+  PROFILES.virtualboy={
+    faces:[face('A',8,'vbA'),face('B',0,'vbB')],
+    shoulders:[shoulder('L',10,'left',0),shoulder('R',11,'right',0)],
+    middle:[['SELECT',2],['START',3]]
+  };
+
+  const pad=document.createElement('div');
+  pad.id='vbRightPad';pad.className='touchGroup';pad.setAttribute('aria-label','Croix directionnelle droite Virtual Boy');
+  pad.innerHTML=`
+    <button class="padBtn up vbRightUp" data-input="12" aria-label="Croix droite haut"><i class="tri"></i></button>
+    <button class="padBtn left vbRightLeft" data-input="13" aria-label="Croix droite gauche"><i class="tri"></i></button>
+    <div class="dCenter"></div>
+    <button class="padBtn right vbRightRight" data-input="15" aria-label="Croix droite droite"><i class="tri"></i></button>
+    <button class="padBtn down vbRightDown" data-input="14" aria-label="Croix droite bas"><i class="tri"></i></button>`;
+  app.appendChild(pad);
+  [...pad.querySelectorAll('.padBtn')].forEach(bindInputButton);
+
+  const baseUpdateController=updateController;
+  updateController=function(systemId){
+    const out=baseUpdateController(systemId);
+    pad.style.display=systemId==='vb'?'block':'none';
+    return out;
+  };
+  pad.style.display='none';
+  globalThis.__RETROOM_VB_PAD_TEST__={pad,inputs:{up:12,left:13,down:14,right:15}};
 })();
 </script>
 
