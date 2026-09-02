@@ -1,0 +1,83 @@
++      const added=globalThis.BiosCatalog?.registerEntries?.(parsed.entries)||0;
++      return {ok:true,added,sourceFiles:parsed.sourceFiles||0,sourceSystems:parsed.sourceSystems||0};
++    })().catch(err=>({ok:false,error:String(err?.message||err),added:0,sourceFiles:0,sourceSystems:0}));
++    return retroBiosCatalogPromise;
++  }
++  globalThis.__RETROOM_BIOS_REMOTE_TEST__={mapRetroBiosSystem,ensureRetroBiosCatalog,api:RETROBIOS_PLATFORM_API};
++
+   async function processBiosSelection(all){
+-    const psx=[],opera=[];let archiveErrors=0,archives=0;
++    const psx=[],opera=[];let archiveErrors=0,archives=0,archivesIndexed=0,legacyArchiveErrors=0;
++    // V6.27.4 — indexe les ZIP par leur répertoire central sans décompresser.
++    // Seuls les BIOS PS1/3DO réellement nécessaires au runtime sont extraits ensuite.
++    const remoteCatalog=await ensureRetroBiosCatalog();
++    try{globalThis.BiosIndex?.clear();}catch(_){}
+     for(const file of (all||[])){
+       const name=String(file?.name||''),ext=extOfName(name);
++      try{globalThis.BiosIndex?.indexFile?.(file,file?.webkitRelativePath||file?.name||'');}catch(_){}
+       const p=normalizePsxBiosFile(file);if(p)psx.push(p);
+       if(OPERA_RE.test(name))opera.push(file);
+       if(isBiosArchiveExt(ext)){
+         archives++;
+         try{
+           const entries=await extractArchive(file);
+-          const got=collectRecognizedFromExtracted(entries);
+-          psx.push(...got.psx);opera.push(...got.opera);
+-        }catch(err){archiveErrors++;console.warn('RetroRoom BIOS archive',name,err);}
++          archivesIndexed++;
++          try{globalThis.BiosIndex?.indexExtracted(entries);}catch(_){}
++          if(ext==='zip'){
++            const wanted=flattenExtracted(entries)
++              .map(entry=>entry.pathname||entry.filename||entry.file?.name||'')
++              .filter(path=>isPsxBiosName(path)||OPERA_RE.test(basename(path)));
++            if(wanted.length){
++              try{
++                const realEntries=await extractZipSelected(file,wanted);
++                const got=collectRecognizedFromExtracted(realEntries);
++                psx.push(...got.psx);opera.push(...got.opera);
++              }catch(err){
++                legacyArchiveErrors++;
++                console.warn('RetroRoom BIOS runtime extraction',name,err);
++              }
++            }
++          }else{
++            const got=collectRecognizedFromExtracted(entries);
++            psx.push(...got.psx);opera.push(...got.opera);
++          }
++        }catch(err){archiveErrors++;console.warn('RetroRoom BIOS archive index',name,err);}
+       }
+     }
+     globalThis.__RETROOM_PSX_BIOS_FILES__=dedupeFiles(psx);
+     globalThis.__RETROOM_V616_BIOS_FILES__=dedupeFiles(opera);
+-    return {psx:globalThis.__RETROOM_PSX_BIOS_FILES__,opera:globalThis.__RETROOM_V616_BIOS_FILES__,archives,archiveErrors};
++    const globalBios=globalThis.BiosIndex?.snapshot?.()||{matchedFiles:0,coveredSystems:0,matchedEntries:0,systems:{}};
++    globalThis.__RETROOM_GLOBAL_BIOS_V627__={index:globalThis.BiosIndex||null,snapshot:globalBios};
++    return {psx:globalThis.__RETROOM_PSX_BIOS_FILES__,opera:globalThis.__RETROOM_V616_BIOS_FILES__,archives,archivesIndexed,archiveErrors,legacyArchiveErrors,globalBios,remoteCatalog};
+   }
+ 
+   const biosInput=document.getElementById('biosFolderInput');
+   const biosBtn=document.getElementById('biosFolderBtn');
++  const biosDiag=document.getElementById('biosDiag');
+   if(biosInput){
+     document.addEventListener('change',e=>{
+       if(e.target!==biosInput||!biosInput.files?.length)return;
+       const all=[...biosInput.files];
+       if(biosBtn){biosBtn.disabled=true;biosBtn.textContent='BIOS …';}
+       Promise.resolve(processBiosSelection(all)).then(info=>{
+-        const total=info.psx.length+info.opera.length;
+-        if(biosBtn){biosBtn.disabled=false;biosBtn.textContent=total?`BIOS ${total} ✓`:'BIOS !';biosBtn.title=`3DO ${info.opera.length} • PS1 ${info.psx.length}`;}
++        const globalInfo=info.globalBios||{matchedFiles:0,coveredSystems:0};
++        const legacyTotal=info.psx.length+info.opera.length;
++        const total=Math.max(globalInfo.matchedFiles||0,legacyTotal);
++        const covered=new Set(globalThis.BiosIndex?.coveredSystems?.()||[]);
++        if(info.psx.length)covered.add('psx');
++        if(info.opera.length)covered.add('threeDO');
++        const coveredSystems=Math.max(globalInfo.coveredSystems||0,covered.size);
++        if(biosBtn){
++          biosBtn.disabled=false;
++          biosBtn.textContent=total?`BIOS ${total} ✓`:'BIOS !';
++          biosBtn.title=`${total} fichiers reconnus • ${coveredSystems} systèmes couverts • 3DO ${info.opera.length} • PS1 ${info.psx.length} • ${info.remoteCatalog?.ok?'RetroArch '+info.remoteCatalog.sourceFiles:'registre local'}`;
++        }
++        if(biosDiag){
++          const source=info.remoteCatalog?.ok
++            ? `RETROARCH ${info.remoteCatalog.sourceFiles}`
