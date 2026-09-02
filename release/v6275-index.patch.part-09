@@ -1,0 +1,85 @@
++            : `REGISTRE LOCAL${info.remoteCatalog?.error?' • '+String(info.remoteCatalog.error).slice(0,90):''}`;
++          const archiveTxt=info.archives?` • ARCHIVES INDEXÉES ${info.archivesIndexed||0}/${info.archives}`:'';
++          biosDiag.textContent=`BIOS ${total} RECONNUS • ${coveredSystems} SYSTÈMES • SÉLECTION ${all.length} FICHIERS${archiveTxt} • ${source}`;
++          biosDiag.classList.add('show');
++          biosDiag.classList.toggle('bad',!info.remoteCatalog?.ok);
++        }
+         try{
+-          const archiveNote=info.archives?` • archives ${info.archives-info.archiveErrors}/${info.archives}`:'';
+-          showToast(total?`BIOS : 3DO ${info.opera.length} • PS1 ${info.psx.length}${archiveNote}`:`Aucun BIOS 3DO/PS1 reconnu${archiveNote}`,4800);
++          const archiveNote=info.archives?` • archives indexées ${info.archivesIndexed||0}/${info.archives}`:'';
++          const registryNote=info.remoteCatalog?.ok?` • registre RetroArch ${info.remoteCatalog.sourceFiles}`:' • registre local';
++          showToast(total?`BIOS : ${total} fichiers reconnus • ${coveredSystems} systèmes couverts${archiveNote}${registryNote}`:`Aucun BIOS reconnu${archiveNote}${registryNote}`,6200);
+         }catch(_){ }
+         biosInput.value='';
+-      }).catch(()=>{
++      }).catch(err=>{
+         if(biosBtn){biosBtn.disabled=false;biosBtn.textContent='BIOS !';}
++        if(biosDiag){
++          biosDiag.textContent=`BIOS : ERREUR DE SCAN • ${String(err?.message||err||'inconnue').slice(0,120)}`;
++          biosDiag.classList.add('show','bad');
++        }
+         try{showToast('BIOS : impossible de lire la sélection.',4800);}catch(_){ }
+         biosInput.value='';
+       });
+@@ -3121,8 +3595,75 @@
+   globalThis.__RETROOM_PSX_V626__={canonicalizePsxDiscFiles,resolvePsxCueBundle,processBiosSelection,choosePsxBios};
+   globalThis.__RETROOM_PSX_V626_TEST__={
+     normalizePath,cueFileReferences,canonicalizePsxDiscFiles,resolvePsxCueBundle,
+-    isPsxBiosName,isBiosArchiveExt,psxCanonicalName,pickPsxBiosFromExtracted,collectRecognizedFromExtracted,choosePsxBios
++    isPsxBiosName,isBiosArchiveExt,psxCanonicalName,pickPsxBiosFromExtracted,collectRecognizedFromExtracted,choosePsxBios,
++    ensureJsZipRuntime,extractZipWithJsZip,extractArchive
++  };
++})();
++</script>
++
++
++<style id="virtualboy-pad-v6274-style">
++#vbRightPad{
++  display:none;position:absolute;z-index:16;
++  right:max(14px,env(safe-area-inset-right));
++  bottom:calc(var(--safe-bottom) + 8px);
++  width:154px;height:154px;pointer-events:auto;user-select:none;-webkit-user-select:none
++}
++#app[data-pad-profile="virtualboy"] #vbRightPad{display:block}
++#app[data-pad-profile="virtualboy"] #actions{
++  left:50%!important;right:auto!important;width:150px!important;
++  bottom:calc(var(--safe-bottom) + 8px)!important;
++  transform:translateX(-50%)!important;transform-origin:center bottom!important
++}
++#app[data-pad-profile="virtualboy"] #actions .roundBtn{border-color:rgba(225,80,90,.58)}
++#app[data-pad-profile="virtualboy"] #actions .roundBtn.active{border-color:rgba(255,115,167,.92)}
++@media(max-width:760px){
++  #app[data-pad-profile="virtualboy"] #vbRightPad{transform:scale(.84);transform-origin:right bottom}
++  #app[data-pad-profile="virtualboy"] #actions{transform:translateX(-50%) scale(.84)!important}
++}
++@media(max-width:390px){
++  #app[data-pad-profile="virtualboy"] #vbRightPad{transform:scale(.76)}
++  #app[data-pad-profile="virtualboy"] #actions{transform:translateX(-50%) scale(.76)!important}
++}
++@media(orientation:landscape) and (max-height:600px){
++  #app[data-pad-profile="virtualboy"] #vbRightPad{bottom:calc(var(--safe-bottom) + 2px);transform:scale(.66);transform-origin:right bottom}
++  #app[data-pad-profile="virtualboy"] #actions{bottom:calc(var(--safe-bottom) + 2px)!important;transform:translateX(-50%) scale(.68)!important}
++}
++</style>
++<script id="virtualboy-pad-v6274-script">
++(() => {
++  'use strict';
++  if(globalThis.__RETROOM_VB_PAD_V6274__)return;
++  globalThis.__RETROOM_VB_PAD_V6274__=true;
++  if(typeof SYSTEMS==='undefined'||typeof PROFILES==='undefined'||typeof face!=='function'||typeof updateController!=='function')return;
++
++  SYSTEMS.vb.profile='virtualboy';
++  try{FACE_POS.vbA=[18,92];FACE_POS.vbB=[80,42];}catch(_){}
++  PROFILES.virtualboy={
++    faces:[face('A',8,'vbA'),face('B',0,'vbB')],
++    shoulders:[shoulder('L',10,'left',0),shoulder('R',11,'right',0)],
++    middle:[['SELECT',2],['START',3]]
++  };
++
++  const pad=document.createElement('div');
++  pad.id='vbRightPad';pad.className='touchGroup';pad.setAttribute('aria-label','Croix directionnelle droite Virtual Boy');
++  pad.innerHTML=`
++    <button class="padBtn up vbRightUp" data-input="12" aria-label="Croix droite haut"><i class="tri"></i></button>
++    <button class="padBtn left vbRightLeft" data-input="13" aria-label="Croix droite gauche"><i class="tri"></i></button>
++    <div class="dCenter"></div>
