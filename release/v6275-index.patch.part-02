@@ -1,0 +1,117 @@
++  const folderToId=new Map();
++  const normalize=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[_\s]+/g,'').trim();
++  for(const [id,entry] of Object.entries(CATALOG)){
++    for(const folder of entry.folders||[])folderToId.set(normalize(folder),id);
++  }
++  function canonicalFromFolder(name){return folderToId.get(normalize(name))||null;}
++  function system(id){return CATALOG[id]||null;}
++  function isKnownFolder(name){return !!canonicalFromFolder(name);}
++  function isGameExtension(id,ext){const e=String(ext||'').toLowerCase().replace(/^\./,'');return !!system(id)?.exts?.includes(e);}
++  function supportState(id){return system(id)?.support||null;}
++  return {CATALOG,canonicalFromFolder,system,isKnownFolder,isGameExtension,supportState,normalize};
++});
++
++</script>
++<script id="retroom-library-scan-v627">
++(function(root,factory){
++  const catalog=(typeof module!=='undefined'&&module.exports)?require('./system-catalog.js'):root.SystemCatalog;
++  const api=factory(catalog);
++  if(typeof module!=='undefined'&&module.exports)module.exports=api;
++  if(root)root.LibraryScan=api;
++})(typeof globalThis!=='undefined'?globalThis:this,function(SystemCatalog){
++  'use strict';
++  const SKIP_EXT=new Set([
++    'png','jpg','jpeg','gif','webp','bmp','svg','mp4','m4v','webm','mkv','avi','mov','3gp','mp3','ogg','wav','flac',
++    'txt','md','nfo','ini','db','pdf','xml','json','log','sav','srm','rtc','ips','ups','bps','cht','bak','tmp','state',
++    'thumbnail','nomedia','sbi','sub'
++  ]);
++  const SKIP_NAMES=new Set(['systeminfo.txt','systems.txt','.nomedia']);
++  const MEDIA_DIRS=new Set(['media','image','images','cover','covers','boxart','boxarts','video','videos','screenshot','screenshots','snap','snaps','manual','manuals']);
++  const normalize=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
++  function extOf(file){
++    const name=String(file?.name||'');
++    const i=name.lastIndexOf('.');
++    return i>=0?name.slice(i+1).toLowerCase():'';
++  }
++  function pathSegments(file){
++    return String(file?.webkitRelativePath||file?.relativePath||file?.__relativePath||file?.path||file?.name||'')
++      .replace(/\\/g,'/').split('/').filter(Boolean);
++  }
++  function folderSystem(file){
++    const seg=pathSegments(file);
++    if(seg.length&&/\.[a-z0-9]{1,10}$/i.test(seg[seg.length-1]))seg.pop();
++    for(let i=seg.length-1;i>=0;i--){
++      const id=SystemCatalog?.canonicalFromFolder?.(seg[i]);
++      if(id)return id;
++    }
++    return null;
++  }
++  function isIgnoredPath(file){
++    const seg=pathSegments(file).slice(0,-1).map(normalize);
++    return seg.some(s=>MEDIA_DIRS.has(s));
++  }
++  function isIgnoredFile(file){
++    const name=normalize(file?.name);
++    const ext=extOf(file);
++    return SKIP_NAMES.has(name)||SKIP_EXT.has(ext)||isIgnoredPath(file)||!(Number(file?.size)>0);
++  }
++  function resolveSystem(file,fallbackDetect){
++    const byFolder=folderSystem(file);
++    if(byFolder)return byFolder;
++    if(typeof fallbackDetect==='function'){
++      try{return fallbackDetect(String(file?.name||''))||null;}catch(_){}
++    }
++    return null;
++  }
++  function isGameCandidate(file,fallbackDetect){
++    if(!file||isIgnoredFile(file))return false;
++    return !!resolveSystem(file,fallbackDetect);
++  }
++  return {SKIP_EXT,SKIP_NAMES,MEDIA_DIRS,extOf,pathSegments,folderSystem,isIgnoredPath,isIgnoredFile,resolveSystem,isGameCandidate};
++});
++
++</script>
++<script id="retroom-esde-runtime-v627">
++(() => {
++  'use strict';
++  const catalog=globalThis.SystemCatalog;
++  const scan=globalThis.LibraryScan;
++  if(!catalog||!scan)return;
++
++  try{
++    for(const [id,entry] of Object.entries(catalog.CATALOG||{})){
++      if(typeof SYSTEMS!=='undefined'&&!SYSTEMS[id]){
++        SYSTEMS[id]={
++          label:entry.label||String(id).toUpperCase(),
++          profile:'two',
++          exts:[...(entry.exts||[])],
++          engine:'unsupported'
++        };
++      }else if(typeof SYSTEMS!=='undefined'&&SYSTEMS[id]){
++        if(!Array.isArray(SYSTEMS[id].exts))SYSTEMS[id].exts=[];
++        for(const ext of (entry.exts||[])){
++          if(!SYSTEMS[id].exts.includes(ext))SYSTEMS[id].exts.push(ext);
++        }
++      }
++    }
++  }catch(err){console.warn('RetroRoom ES-DE catalog merge',err);}
++
++  const legacySmart=globalThis.__SMART_ROM_TEST__?.smartDetectSystem;
++  function smartDetectSystem(name='',path=''){
++    const byFolder=scan.folderSystem({
++      name:String(name||''),
++      webkitRelativePath:String(path||''),
++      size:1
++    });
++    if(byFolder)return byFolder;
++    if(typeof legacySmart==='function'){
++      try{return legacySmart(name,path)||null;}catch(_){}
++    }
++    return null;
++  }
++  function folderSystem(path='',name=''){
++    return scan.folderSystem({name:String(name||''),webkitRelativePath:String(path||''),size:1});
++  }
++
++  try{detectSystem=function(name){return smartDetectSystem(name,'');};}catch(_){}
++  try{
