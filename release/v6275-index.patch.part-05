@@ -1,0 +1,109 @@
++  const PREFERENCE={"threeDO":["panafz1","panafz10","panafz10-norsa","panafz10e-anvil","panafz10e-anvil-norsa","panafz1j","panafz1j-norsa","goldstar","sanyotry","3do_arcade_saot","panafz1-kanji","panafz10ja-anvil-kanji","panafz1j-kanji"],"psx":["psxonpsp660","scph101","scph7001","scph5501","scph1001","scph5502","scph5500","ps1_rom","openbios"]};
++  const normalize=v=>String(v||'').replace(/\\/g,'/').toLowerCase().trim();
++  const basename=v=>normalize(v).split('/').pop()||'';
++  function entryMatches(entry,name){
++    const n=normalize(name),b=basename(name);
++    return (entry.names||[]).some(raw=>{
++      const a=normalize(raw);
++      return n===a || b===basename(a);
++    });
++  }
++  function matchFilename(name){return CATALOG.filter(entry=>entryMatches(entry,name));}
++  function matchForSystem(systemId,name){return matchFilename(name).find(entry=>(entry.systems||[]).includes(systemId))||null;}
++  function systemsForFilename(name){
++    const out=new Set();
++    for(const entry of matchFilename(name))for(const sid of (entry.systems||[]))out.add(sid);
++    return [...out];
++  }
++  function entriesFor(systemId){return CATALOG.filter(entry=>(entry.systems||[]).includes(systemId));}
++  function registerEntries(entries){
++    let added=0;
++    for(const incoming of (entries||[])){
++      if(!incoming||!incoming.id)continue;
++      const existing=CATALOG.find(e=>e.id===incoming.id);
++      if(existing){
++        existing.names=[...new Set([...(existing.names||[]),...(incoming.names||[])])];
++        existing.systems=[...new Set([...(existing.systems||[]),...(incoming.systems||[])])];
++        continue;
++      }
++      CATALOG.push({
++        id:String(incoming.id),systems:[...new Set(incoming.systems||[])],
++        names:[...new Set(incoming.names||[])],required:!!incoming.required,
++        description:incoming.description||'RetroArch firmware'
++      });
++      added++;
++    }
++    return added;
++  }
++  function fromRetroBiosPlatforms(data,mapSystem){
++    const item=(data?.items||[]).find(x=>x?.contract?.platform==='RetroArch');
++    const systems=item?.contract?.systems||{};
++    const entries=[];
++    let sourceFiles=0;
++    for(const [sourceId,spec] of Object.entries(systems)){
++      const mapped=(typeof mapSystem==='function'?mapSystem(sourceId,spec):null)||('rb:'+sourceId);
++      for(const file of (spec?.files||[])){
++        const names=[file?.name,file?.destination].filter(Boolean).map(String);
++        if(!names.length)continue;
++        sourceFiles++;
++        const key=normalize(file.destination||file.name).replace(/[^a-z0-9._/-]+/g,'_');
++        entries.push({
++          id:'retrobios:'+sourceId+':'+key,
++          systems:[mapped],names:[...new Set(names)],required:!!file.required,
++          description:'RetroArch • '+(spec?.native_id||sourceId)
++        });
++      }
++    }
++    return {entries,sourceFiles,sourceSystems:Object.keys(systems).length};
++  }
++  return {CATALOG,PREFERENCE,normalize,basename,matchFilename,matchForSystem,systemsForFilename,entriesFor,registerEntries,fromRetroBiosPlatforms};
++});
++
++</script>
++<script id="retroom-bios-index-v627">
++(function(root,factory){
++  const catalog=(typeof module!=='undefined'&&module.exports)?require('./bios-catalog.js'):root.BiosCatalog;
++  const api=factory(catalog);
++  if(typeof module!=='undefined'&&module.exports)module.exports=api;
++  if(root)root.BiosIndex=api;
++})(typeof globalThis!=='undefined'?globalThis:this,function(BiosCatalog){
++  'use strict';
++  const bySystem=new Map();
++
++  function clear(){bySystem.clear();}
++  function store(systemId,entryId,file){
++    if(!bySystem.has(systemId))bySystem.set(systemId,new Map());
++    bySystem.get(systemId).set(entryId,file);
++  }
++  function indexFile(file,nameOverride=''){
++    if(!file)return [];
++    const logicalName=String(nameOverride||file.name||'');
++    const hits=BiosCatalog?.matchFilename?.(logicalName)||[];
++    for(const hit of hits){
++      for(const systemId of (hit.systems||[]))store(systemId,hit.id,file);
++    }
++    return hits;
++  }
++  function indexFiles(files){
++    let matchedFiles=0,matchedEntries=0,total=0;
++    for(const file of Array.from(files||[])){
++      total++;
++      const hits=indexFile(file);
++      if(hits.length){matchedFiles++;matchedEntries+=hits.length;}
++    }
++    return {total,matchedFiles,matchedEntries,coveredSystems:coveredSystems().length};
++  }
++  function flattenExtracted(entries,out=[]){
++    for(const entry of (entries||[])){
++      if(!entry)continue;
++      if(entry.file)out.push(entry);
++      if(Array.isArray(entry.children))flattenExtracted(entry.children,out);
++    }
++    return out;
++  }
++  function indexExtracted(entries){
++    let matchedFiles=0,matchedEntries=0,total=0;
++    for(const entry of flattenExtracted(entries)){
++      total++;
++      const logicalName=entry.pathname||entry.filename||entry.file?.name||'';
++      const hits=indexFile(entry.file,logicalName);
