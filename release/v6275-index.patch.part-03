@@ -1,0 +1,32 @@
++    chooseSystem=function(file){
++      const manual=systemSelect.value;
++      if(manual!=='auto')return manual;
++      const path=file?.webkitRelativePath||file?.relativePath||file?.__relativePath||file?.path||'';
++      return smartDetectSystem(file?.name||'',path);
++    };
++  }catch(_){}
++
++  globalThis.__SMART_ROM_TEST__={
++    ...(globalThis.__SMART_ROM_TEST__||{}),
++    smartDetectSystem,
++    folderSystem,
++    esdeCatalog:true
++  };
++  globalThis.__RETROOM_ESDE_V627__={smartDetectSystem,folderSystem,catalog:catalog.CATALOG};
++})();
++
++</script>
+ <script src="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/arcade-compat.js"></script>
+ <script src="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/core-room-a.js"></script>
+ <script src="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/core-room-b.js"></script>
+@@ -2841,6 +2991,159 @@
+ 
+ 
+ 
++<script id="retroom-bios-catalog-v627">
++(function(root,factory){
++  const api=factory();
++  if(typeof module!=='undefined'&&module.exports)module.exports=api;
++  if(root)root.BiosCatalog=api;
++})(typeof globalThis!=='undefined'?globalThis:this,function(){
++  'use strict';
