@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#09070d">
-<title>Retro Room V6.27.5 — L’électron libre</title>
+<title>Retro Room V6.29 — STABLE — L’électron libre</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/styles.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/BriskoBrice/Retro-Room-by-l-lectron-libre@402179e5f71944127ae8be455480468b1f4564a8/src/library.css">
 <style>#dirBtn{display:none!important}</style>
@@ -1474,6 +1474,389 @@
 })();
 </script>
 
+<script id="library-cache-v628-script">
+(function(root,factory){
+  const api=factory(root);
+  if(typeof module==='object'&&module.exports)module.exports=api;
+  if(root)root.__RETROOM_LIBRARY_CACHE_V628__=api;
+})(typeof globalThis!=='undefined'?globalThis:this,function(root){
+  'use strict';
+
+  const DB_NAME='retroom-v628';
+  const DB_VERSION=1;
+  const STORE='state';
+  const LIBRARY_KEY='library';
+  const HANDLE_KEY='romDirectoryHandle';
+  const LS_KEY='retroom.library.v628';
+  const CACHE_VERSION=1;
+
+  function pathOf(file){
+    return String(file?.webkitRelativePath||file?.__retroomRelativePath||file?.name||'').replace(/\\/g,'/');
+  }
+
+  function serializeEntry(entry){
+    const file=entry?.file||null;
+    return {
+      name:String(entry?.name||''),
+      rawName:String(entry?.rawName||''),
+      path:String(entry?.path||pathOf(file)||''),
+      ext:String(entry?.ext||''),
+      systemId:entry?.systemId??null,
+      systemLabel:String(entry?.systemLabel||''),
+      size:Number(file?.size??entry?.size??0)||0,
+      lastModified:Number(file?.lastModified??entry?.lastModified??0)||0
+    };
+  }
+
+  function serializeRows(rows,fingerprint){
+    return {
+      version:CACHE_VERSION,
+      fingerprint:String(fingerprint||''),
+      rows:Array.from(rows||[],serializeEntry),
+      savedAt:Date.now()
+    };
+  }
+
+  function fnv1a(text){
+    let hash=0x811c9dc5;
+    for(let i=0;i<text.length;i++){
+      hash^=text.charCodeAt(i);
+      hash=Math.imul(hash,0x01000193);
+    }
+    return (hash>>>0).toString(16).padStart(8,'0');
+  }
+
+  function fingerprintFiles(files){
+    const parts=[];
+    for(const file of files||[]){
+      if(!file)continue;
+      parts.push(`${pathOf(file).toLowerCase()}|${Number(file.size)||0}|${Number(file.lastModified)||0}`);
+    }
+    parts.sort();
+    return `${parts.length}:${fnv1a(parts.join('\n'))}`;
+  }
+
+
+  function normalizePath(value){
+    return String(value||'').replace(/\\/g,'/').replace(/^\/+|\/+$/g,'').toLowerCase();
+  }
+
+  function attachCachedRows(cacheRows,files){
+    const byPath=new Map();
+    for(const file of files||[]){
+      if(!file)continue;
+      byPath.set(normalizePath(pathOf(file)),file);
+    }
+    const rows=[];
+    const missing=[];
+    for(const cached of cacheRows||[]){
+      const file=byPath.get(normalizePath(cached?.path));
+      if(!file){missing.push(String(cached?.path||''));continue;}
+      rows.push({...cached,file,path:String(cached.path||pathOf(file))});
+    }
+    return {rows,missing};
+  }
+
+  function openDb(){
+    return new Promise((resolve,reject)=>{
+      if(!root?.indexedDB){reject(new Error('IndexedDB unavailable'));return;}
+      let req;
+      try{req=root.indexedDB.open(DB_NAME,DB_VERSION);}catch(err){reject(err);return;}
+      req.onupgradeneeded=()=>{
+        const db=req.result;
+        if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE);
+      };
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>reject(req.error||new Error('IndexedDB open failed'));
+    });
+  }
+
+  async function idbGet(key){
+    const db=await openDb();
+    try{
+      return await new Promise((resolve,reject)=>{
+        const tx=db.transaction(STORE,'readonly');
+        const req=tx.objectStore(STORE).get(key);
+        req.onsuccess=()=>resolve(req.result);
+        req.onerror=()=>reject(req.error||new Error('IndexedDB get failed'));
+      });
+    }finally{try{db.close();}catch(_){}}
+  }
+
+  async function idbSet(key,value){
+    const db=await openDb();
+    try{
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction(STORE,'readwrite');
+        tx.oncomplete=()=>resolve();
+        tx.onerror=()=>reject(tx.error||new Error('IndexedDB write failed'));
+        tx.objectStore(STORE).put(value,key);
+      });
+    }finally{try{db.close();}catch(_){}}
+    return value;
+  }
+
+  async function idbDelete(key){
+    const db=await openDb();
+    try{
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction(STORE,'readwrite');
+        tx.oncomplete=()=>resolve();
+        tx.onerror=()=>reject(tx.error||new Error('IndexedDB delete failed'));
+        tx.objectStore(STORE).delete(key);
+      });
+    }finally{try{db.close();}catch(_){}}
+  }
+
+  function validSnapshot(value){
+    return !!value&&value.version===CACHE_VERSION&&Array.isArray(value.rows);
+  }
+
+  async function loadLibraryCache(){
+    try{
+      const value=await idbGet(LIBRARY_KEY);
+      if(validSnapshot(value))return value;
+    }catch(_){ }
+    try{
+      const raw=root?.localStorage?.getItem?.(LS_KEY);
+      if(raw){
+        const value=JSON.parse(raw);
+        if(validSnapshot(value))return value;
+      }
+    }catch(_){ }
+    return null;
+  }
+
+  async function saveLibraryCache(snapshot){
+    if(!validSnapshot(snapshot))throw new TypeError('Invalid library cache snapshot');
+    let saved=false;
+    try{await idbSet(LIBRARY_KEY,snapshot);saved=true;}catch(_){ }
+    if(!saved){
+      try{root?.localStorage?.setItem?.(LS_KEY,JSON.stringify(snapshot));saved=true;}catch(_){ }
+    }else{
+      try{root?.localStorage?.setItem?.(LS_KEY,JSON.stringify(snapshot));}catch(_){ }
+    }
+    return saved;
+  }
+
+  async function clearLibraryCache(){
+    try{await idbDelete(LIBRARY_KEY);}catch(_){ }
+    try{root?.localStorage?.removeItem?.(LS_KEY);}catch(_){ }
+  }
+
+  async function loadDirectoryHandle(){
+    try{return await idbGet(HANDLE_KEY)||null;}catch(_){return null;}
+  }
+
+  async function saveDirectoryHandle(handle){
+    if(!handle)return false;
+    try{await idbSet(HANDLE_KEY,handle);return true;}catch(_){return false;}
+  }
+
+  async function clearDirectoryHandle(){
+    try{await idbDelete(HANDLE_KEY);}catch(_){ }
+  }
+
+  return {
+    CACHE_VERSION,serializeEntry,serializeRows,fingerprintFiles,attachCachedRows,
+    loadLibraryCache,saveLibraryCache,clearLibraryCache,
+    loadDirectoryHandle,saveDirectoryHandle,clearDirectoryHandle,
+    _test:{fnv1a,pathOf,normalizePath,validSnapshot}
+  };
+});
+
+</script>
+<script id="library-folder-access-v628-script">
+(function(root,factory){
+  const api=factory(root);
+  if(typeof module==='object'&&module.exports)module.exports=api;
+  if(root)root.__RETROOM_FOLDER_ACCESS_V628__=api;
+})(typeof globalThis!=='undefined'?globalThis:this,function(root){
+  'use strict';
+
+  const MEDIA_EXTS=new Set(['png','jpg','jpeg','gif','webp','bmp','svg','mp4','m4v','webm','mkv','avi','mov','3gp','mp3','ogg','wav','flac']);
+  const TECH_EXTS=new Set(['txt','md','nfo','ini','db','pdf','xml','json','log','sav','srm','rtc','ips','ups','bps','cht','bak','tmp','state','thumbnail','nomedia']);
+  const SKIP_DIR_RE=/^(?:bios|system|images?|covers?|boxarts?|videos?|media|screenshots?|snaps?|manuals?|downloaded_media|gamelists?|logs?|themes?|screensavers?)$/i;
+
+  const extOf=name=>{
+    const p=String(name||'').split('.');
+    return p.length>1?p.pop().toLowerCase():'';
+  };
+  const normalizePath=value=>String(value||'').replace(/\\/g,'/').replace(/^\/+|\/+$/g,'');
+
+  function supportsDirectoryPicker(env=root){
+    if(env?.isSecureContext===false)return false;
+    return typeof env?.showDirectoryPicker==='function';
+  }
+
+  async function connectRomDirectoryFromGesture(options={}){
+    const env=options.env||root;
+    const legacy=typeof options.legacy==='function'?options.legacy:()=>{};
+    if(!supportsDirectoryPicker(env)){
+      legacy();
+      return {mode:'legacy'};
+    }
+    try{
+      const handle=await env.showDirectoryPicker({id:'retroom-roms',mode:'read'});
+      if(typeof options.saveHandle==='function')await options.saveHandle(handle);
+      return {mode:'handle',handle};
+    }catch(err){
+      if(err?.name==='AbortError')return {mode:'cancelled',error:err};
+      legacy();
+      return {mode:'legacy',error:err};
+    }
+  }
+
+  function annotateRelativePath(file,path){
+    const normalized=normalizePath(path);
+    try{
+      Object.defineProperty(file,'webkitRelativePath',{value:normalized,configurable:true});
+    }catch(_){
+      try{file.__retroomRelativePath=normalized;}catch(__){}
+    }
+    return file;
+  }
+
+  function isPlausibleRomName(name){
+    const ext=extOf(name);
+    if(!ext||MEDIA_EXTS.has(ext)||TECH_EXTS.has(ext))return false;
+    return true;
+  }
+
+  function nextYield(){
+    return new Promise(resolve=>{
+      if(typeof root?.requestAnimationFrame==='function')root.requestAnimationFrame(()=>resolve());
+      else if(typeof setImmediate==='function')setImmediate(resolve);
+      else setTimeout(resolve,0);
+    });
+  }
+
+  async function mapPool(items,limit,worker){
+    const out=new Array(items.length);
+    let cursor=0;
+    const count=Math.max(1,Math.min(Number(limit)||1,items.length||1));
+    async function run(){
+      while(true){
+        const i=cursor++;
+        if(i>=items.length)return;
+        out[i]=await worker(items[i],i);
+      }
+    }
+    await Promise.all(Array.from({length:count},run));
+    return out;
+  }
+
+  async function walkRomDirectory(rootHandle,options={}){
+    if(!rootHandle||rootHandle.kind!=='directory')throw new TypeError('Directory handle required');
+    const concurrency=Math.max(1,Math.min(32,Number(options.concurrency)||16));
+    const yieldEvery=Math.max(20,Number(options.yieldEvery)||150);
+    const rootName=String(rootHandle.name||'Roms');
+    const candidates=[];
+    let dirsVisited=0,entriesSeen=0,filesSkipped=0,dirsSkipped=0;
+
+    async function walk(dir,prefix){
+      dirsVisited++;
+      for await(const entry of dir.values()){
+        entriesSeen++;
+        if(entry.kind==='directory'){
+          if(SKIP_DIR_RE.test(entry.name)){dirsSkipped++;continue;}
+          await walk(entry,`${prefix}/${entry.name}`);
+        }else if(entry.kind==='file'){
+          if(!isPlausibleRomName(entry.name)){filesSkipped++;continue;}
+          candidates.push({handle:entry,path:`${prefix}/${entry.name}`});
+        }
+        if(entriesSeen%yieldEvery===0)await nextYield();
+      }
+    }
+
+    await walk(rootHandle,rootName);
+    const loaded=await mapPool(candidates,concurrency,async item=>{
+      const file=await item.handle.getFile();
+      if(!file||!(Number(file.size)>0))return null;
+      return annotateRelativePath(file,item.path);
+    });
+    const files=loaded.filter(Boolean);
+    return {
+      files,
+      allCandidateMeta:files.map(file=>({
+        path:normalizePath(file.webkitRelativePath||file.__retroomRelativePath||file.name),
+        size:Number(file.size)||0,lastModified:Number(file.lastModified)||0,name:String(file.name||'')
+      })),
+      stats:{dirsVisited,entriesSeen,filesSkipped,dirsSkipped,candidates:candidates.length,files:files.length}
+    };
+  }
+
+  function pathPartsForRoot(rootHandle,path){
+    const parts=normalizePath(path).split('/').filter(Boolean);
+    if(parts.length&&String(parts[0]).toLowerCase()===String(rootHandle?.name||'').toLowerCase())parts.shift();
+    return parts;
+  }
+
+  async function resolveFileByPath(rootHandle,path){
+    const original=normalizePath(path);
+    const parts=pathPartsForRoot(rootHandle,path);
+    if(!parts.length)throw new DOMException('Empty path','NotFoundError');
+    let dir=rootHandle;
+    for(let i=0;i<parts.length-1;i++)dir=await dir.getDirectoryHandle(parts[i]);
+    const handle=await dir.getFileHandle(parts.at(-1));
+    const file=await handle.getFile();
+    return annotateRelativePath(file,original);
+  }
+
+  function cueFileReferences(text=''){
+    const refs=[];
+    const re=/^\s*FILE\s+(?:"([^"]+)"|'([^']+)'|(.+?))\s+(?:BINARY|MOTOROLA|WAVE|MP3|AIFF)\s*$/gim;
+    let m;
+    while((m=re.exec(String(text||'')))){
+      const ref=String(m[1]||m[2]||m[3]||'').trim();
+      if(ref)refs.push(ref.replace(/\\/g,'/'));
+    }
+    return refs;
+  }
+
+  function parentPath(path){
+    const p=normalizePath(path);
+    const i=p.lastIndexOf('/');
+    return i>=0?p.slice(0,i):'';
+  }
+
+  function joinPath(base,rel){
+    const stack=normalizePath(base).split('/').filter(Boolean);
+    for(const part of normalizePath(rel).split('/').filter(Boolean)){
+      if(part==='.')continue;
+      if(part==='..')stack.pop();
+      else stack.push(part);
+    }
+    return stack.join('/');
+  }
+
+  async function resolveCueBundleByHandle(rootHandle,cuePath){
+    const cue=await resolveFileByPath(rootHandle,cuePath);
+    const text=typeof cue.text==='function'?await cue.text():'';
+    const refs=cueFileReferences(text);
+    const base=parentPath(cuePath);
+    const files=[];
+    const missing=[];
+    const externalFiles={};
+    for(const ref of refs){
+      try{
+        const file=await resolveFileByPath(rootHandle,joinPath(base,ref));
+        files.push(file);
+        externalFiles['/'+String(ref).replace(/^\/+/, '')]=file;
+      }catch(_){missing.push(ref);}
+    }
+    return {cue,refs,files,missing,externalFiles};
+  }
+
+  return {
+    supportsDirectoryPicker,connectRomDirectoryFromGesture,annotateRelativePath,walkRomDirectory,
+    resolveFileByPath,resolveCueBundleByHandle,cueFileReferences,
+    _test:{extOf,normalizePath,isPlausibleRomName,pathPartsForRoot,joinPath,mapPool}
+  };
+});
+
+</script>
+
 <script id="library-plus-v59-script">
 (() => {
   const STORAGE_KEY='retroRoomLibraryPlusV59';
@@ -1512,7 +1895,15 @@
     };
   }
 
-  globalThis.__LIBRARY_PLUS_TEST__={gameKey,normalizeText,filterRows,sortRows,normalizePrefs};
+  function v628AccessUiState({connected=false,hasRows=false}={}){
+    return {
+      statsLabel:hasRows?'PRÊT':'',
+      folderLabel:connected?'ROMS ✓':'ROMS',
+      launchPrompt:'Autorise ton dossier ROMS une fois pour lancer les jeux.'
+    };
+  }
+
+  globalThis.__LIBRARY_PLUS_TEST__={gameKey,normalizeText,filterRows,sortRows,normalizePrefs,v628AccessUiState};
   if(typeof document==='undefined')return;
 
   const overlay=document.getElementById('libraryOverlay');
@@ -1522,6 +1913,7 @@
   const content=document.getElementById('libraryContent');
   const search=document.getElementById('librarySearch');
   const folderInput=document.getElementById('romFolderInput');
+  const folderBtn=document.getElementById('folderBtn');
   const romInput=document.getElementById('romInput');
   const libBtn=document.getElementById('libBtn');
   const systemSelect=document.getElementById('systemSelect');
@@ -1531,6 +1923,102 @@
   let prefs;
   try{prefs=normalizePrefs(JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'));}catch(_){prefs=normalizePrefs({});}
   let rows=[];
+
+  /* V6.28 — bibliothèque instantanée + accès dossier adaptatif. */
+  const cacheApi=globalThis.__RETROOM_LIBRARY_CACHE_V628__||null;
+  const folderApi=globalThis.__RETROOM_FOLDER_ACCESS_V628__||null;
+  const V628_CACHE_LABEL='CACHE •';
+  let v628Cache=null;
+  let v628Fingerprint='';
+  let v628Connected=false;
+  let v628RootHandle=null;
+  let v628SessionPathMap=new Map();
+  let v628PendingLaunchKey=null;
+  const v628Diag=globalThis.__RETROOM_V628_DIAG__={mode:'none',cacheRows:0,connected:false,lastMs:0,lastSource:'none'};
+
+  const v628Path=value=>String(value||'').replace(/\\/g,'/').replace(/^\/+|\/+$/g,'').toLowerCase();
+  const v628FilePath=file=>String(file?.webkitRelativePath||file?.__retroomRelativePath||file?.name||'').replace(/\\/g,'/');
+  function setV628SessionFiles(files){
+    const all=Array.from(files||[]);
+    v628SessionPathMap=new Map(all.map(file=>[v628Path(v628FilePath(file)),file]));
+    globalThis.__RETROOM_V614_SCAN_FILES__=all;
+    globalThis.__RETROOM_PSX_SCAN_FILES__=all;
+    return all;
+  }
+  function cacheEntryV628(meta){
+    return {...meta,file:null,path:String(meta?.path||''),name:String(meta?.name||''),rawName:String(meta?.rawName||''),ext:String(meta?.ext||''),systemLabel:String(meta?.systemLabel||sysLabel(meta?.systemId))};
+  }
+  async function v628HandlePermission(handle,request=false){
+    if(!handle)return 'denied';
+    try{
+      if(typeof handle.queryPermission!=='function')return 'granted';
+      let state=await handle.queryPermission({mode:'read'});
+      if(state==='prompt'&&request&&typeof handle.requestPermission==='function')state=await handle.requestPermission({mode:'read'});
+      return state;
+    }catch(_){return 'denied';}
+  }
+  function refreshV628AccessUi(){
+    if(!folderBtn)return;
+    const ui=v628AccessUiState({connected:v628Connected,hasRows:rows.length>0});
+    folderBtn.textContent=ui.folderLabel;
+    folderBtn.title=v628Connected?'Dossier ROMS autorisé':'Autoriser le dossier ROMS';
+    folderBtn.classList.toggle('v628Connected',v628Connected);
+  }
+  function setV628Connected(value,mode){
+    v628Connected=!!value;v628Diag.connected=v628Connected;if(mode)v628Diag.mode=mode;
+    refreshV628AccessUi();
+    if(rows.length)renderPlus();
+  }
+  async function restoreV628Cache(){
+    if(!cacheApi)return;
+    const started=performance.now();
+    try{
+      const [cached,handle]=await Promise.all([cacheApi.loadLibraryCache(),cacheApi.loadDirectoryHandle()]);
+      if(cached?.rows?.length){
+        v628Cache=cached;v628Fingerprint=String(cached.fingerprint||'');rows=cached.rows.map(cacheEntryV628);
+        v628Diag.cacheRows=rows.length;v628Diag.mode='cache';
+      }
+      if(handle){
+        v628RootHandle=handle;
+        const permission=await v628HandlePermission(handle,false);
+        if(permission==='granted'){v628Connected=true;v628Diag.mode='handle';}
+      }
+      v628Diag.connected=v628Connected;v628Diag.restoreMs=performance.now()-started;
+      if(rows.length)renderPlus();
+    }catch(err){console.warn('RetroRoom V6.28 cache restore',err);}
+  }
+  function saveV628Cache(fingerprint){
+    if(!cacheApi||!rows.length)return;
+    const snap=cacheApi.serializeRows(rows,fingerprint||v628Fingerprint);
+    v628Cache=snap;v628Fingerprint=snap.fingerprint;v628Diag.cacheRows=snap.rows.length;
+    cacheApi.saveLibraryCache(snap).catch?.(()=>{});
+  }
+  function finishPendingV628Launch(){
+    if(!v628PendingLaunchKey)return;
+    const key=v628PendingLaunchKey;v628PendingLaunchKey=null;
+    const entry=rows.find(e=>gameKey(e)===key);
+    if(entry)setTimeout(()=>launchEntryPlus(entry),0);
+  }
+  async function rehydrateCachedEntry(entry){
+    if(entry?.file)return entry;
+    const sessionFile=v628SessionPathMap.get(v628Path(entry?.path));
+    if(sessionFile){entry.file=sessionFile;return entry;}
+    if(!v628RootHandle||!folderApi)return null;
+    const permission=await v628HandlePermission(v628RootHandle,true);
+    if(permission!=='granted')return null;
+    try{
+      if(String(entry?.ext||'').toLowerCase()==='cue'){
+        const bundle=await folderApi.resolveCueBundleByHandle(v628RootHandle,entry.path);
+        entry.file=bundle.cue;
+        setV628SessionFiles([bundle.cue,...bundle.files]);
+      }else{
+        entry.file=await folderApi.resolveFileByPath(v628RootHandle,entry.path);
+        setV628SessionFiles([entry.file]);
+      }
+      v628Connected=true;v628Diag.connected=true;v628Diag.mode='handle';refreshV628AccessUi();
+      return entry;
+    }catch(err){console.warn('RetroRoom V6.28 lazy file',err);return null;}
+  }
   /* V6.25.1 — toujours ouvrir la bibliothèque sur TOUS. */
   let state={tab:'all',query:'',sort:prefs.sort||'az',page:1};
 
@@ -1661,13 +2149,29 @@
     else view=sortRows(view,state.sort,rmap);
     return view;
   }
-  function launchEntryPlus(entry){
+  async function launchEntryPlus(entry){
     try{if(typeof loaderInjected!=='undefined'&&loaderInjected){closeLibrary();showToast('Une ROM est déjà chargée. Touche QUITTER avant de lancer un autre jeu.',4200);return;}}catch(_){}
-    if(!entry?.file){showToast('Rescanne ton dossier ROMs pour relancer ce jeu.',3600);return;}
+    if(!entry?.file){
+      if(!v628RootHandle&&!v628SessionPathMap.size){
+        v628PendingLaunchKey=gameKey(entry);
+        showToast(v628AccessUiState({connected:false,hasRows:rows.length>0}).launchPrompt,2800);
+        folderBtn?.click();
+        return;
+      }
+      const hydrated=await rehydrateCachedEntry(entry);
+      if(!hydrated?.file){showToast('Reconnecte ton dossier ROMS pour lancer ce jeu.',3200);return;}
+    }
     try{selectedFile=entry.file;}catch(_){}
     if(!entry.systemId){closeLibrary();systemSelect.value='auto';romName.textContent=entry.file.name.toUpperCase();setStatus('SYSTÈME INCONNU — CHOISIS SYSTEM');showToast('Choisis la console dans SYSTEM puis relance cette ROM.',4200);return;}
     const sys=SYSTEMS[entry.systemId];
     if(sys?.engine==='unsupported'){closeLibrary();romName.textContent=entry.file.name.toUpperCase();setStatus(`${sys.label} — NON ÉMULÉ`);showToast(`${sys.label} reconnu dans la bibliothèque, mais aucun core web n’est configuré.`,4600);return;}
+    if(typeof globalThis.__RETROOM_FAST_BIOS_ENSURE__==='function'){
+      const biosReady=await globalThis.__RETROOM_FAST_BIOS_ENSURE__(entry.systemId);
+      if(biosReady===false){
+        showToast('BIOS : touche BIOS une fois pour autoriser le dossier, puis relance le jeu.',3600);
+        return;
+      }
+    }
     rememberRecent(entry);systemSelect.value=entry.systemId;prefs.lastSystem=entry.systemId;savePrefs();closeLibrary();launchRom(entry.file);
   }
   function cardFor(entry,rmap){
@@ -1691,10 +2195,11 @@
   }
   function renderPlus(){
     renderHero();renderTabs();
-    const view=rowsForView();stats.innerHTML=`<span><b>${rows.length}</b> ROMS</span><span>•</span><span><b>${groupedSystems().length}</b> SYSTÈMES</span><span>•</span><span><b>${view.length}</b> AFFICHÉES</span>`;
-    renderContent();updateQuickLast();
+    const view=rowsForView();const ui=v628AccessUiState({connected:v628Connected,hasRows:rows.length>0});
+    stats.innerHTML=`${rows.length?`<span><b>${ui.statsLabel}</b> •</span>`:''}<span><b>${rows.length}</b> ROMS</span><span>•</span><span><b>${groupedSystems().length}</b> SYSTÈMES</span><span>•</span><span><b>${view.length}</b> AFFICHÉES</span>`;
+    refreshV628AccessUi();renderContent();updateQuickLast();
   }
-  async function scanPlus(files){
+  async function scanPlus(files,fingerprint=''){
     let libraryFiles;
     try{
       libraryFiles=await globalThis.__RETROOM_3DO_LIBRARY_FIX__.canonicalize3doDiscFiles(files,{candidate,resolveSystem,extOf});
@@ -1706,13 +2211,33 @@
       libraryFiles=[...files].filter(candidate);
     }
     rows=libraryFiles.map(entryFromFile);state.tab='all';state.page=1;state.query='';search.value='';
-    savePrefs();renderPlus();
+    v628Connected=true;v628Diag.connected=true;v628Diag.mode=v628Diag.mode==='handle'?'handle':'legacy';refreshV628AccessUi();
+    savePrefs();renderPlus();saveV628Cache(fingerprint);
   }
 
-  /* FAST SCAN V6.25.2 : Library+ reçoit la liste ROM déjà nettoyée. */
+  /* FAST SCAN V6.28 : reconnexion par empreinte avant canonicalisation complète. */
   document.addEventListener('retroom-fast-folder-scan',e=>{
-    const snapshot=e.detail?.romFiles||[];
-    if(snapshot.length)scanPlus(snapshot).then(()=>openLibraryPlus());
+    const detail=e.detail||{};const snapshot=detail.romFiles||[];
+    if(!snapshot.length)return;
+    const all=setV628SessionFiles(detail.allFiles||snapshot);
+    const fingerprint=cacheApi?.fingerprintFiles?.(snapshot)||'';
+    const started=Number(detail.startedAt)||performance.now();
+    v628Diag.lastSource=detail.source||'legacy';
+    if(v628Cache?.rows?.length&&v628Cache.fingerprint&&fingerprint===v628Cache.fingerprint){
+      const attached=cacheApi.attachCachedRows(v628Cache.rows,snapshot);
+      if(!attached.missing.length&&attached.rows.length===v628Cache.rows.length){
+        rows=attached.rows;v628Connected=true;v628Diag.connected=true;v628Diag.mode=detail.source==='handle'?'handle':'legacy-cache';refreshV628AccessUi();
+        state.tab='all';state.page=1;state.query='';search.value='';savePrefs();renderPlus();
+        v628Diag.lastMs=performance.now()-started;openLibraryPlus();
+        try{showToast(`Bibliothèque prête en ${(v628Diag.lastMs/1000).toFixed(1).replace('.',',')} s`,2300);}catch(_){}
+        finishPendingV628Launch();return;
+      }
+    }
+    scanPlus(snapshot,fingerprint).then(()=>{
+      v628Diag.lastMs=performance.now()-started;openLibraryPlus();
+      try{showToast(`Bibliothèque prête en ${(v628Diag.lastMs/1000).toFixed(1).replace('.',',')} s`,2300);}catch(_){}
+      finishPendingV628Launch();
+    });
   });
   document.addEventListener('change',e=>{
     if(e.target===romInput&&romInput.files?.[0]){
@@ -1720,6 +2245,42 @@
       setTimeout(()=>{try{if(typeof loaderInjected!=='undefined'&&loaderInjected)rememberRecent(entry);}catch(_){}},700);
     }
   },true);
+
+  /* V6.28 : utilise un handle de dossier persistant quand le navigateur l'autorise. */
+  if(folderBtn&&folderApi){
+    folderBtn.addEventListener('click',async e=>{
+      if(!folderApi.supportsDirectoryPicker())return;
+      e.preventDefault();e.stopImmediatePropagation();
+      const started=performance.now();
+      try{
+        let handle=v628RootHandle;
+        if(handle){
+          const permission=await v628HandlePermission(handle,true);
+          if(permission!=='granted'){handle=null;cacheApi?.clearDirectoryHandle?.().catch?.(()=>{});}
+        }
+        if(!handle){
+          const result=await folderApi.connectRomDirectoryFromGesture({
+            env:globalThis,saveHandle:h=>cacheApi?.saveDirectoryHandle?.(h),legacy:()=>{}
+          });
+          if(result.mode==='cancelled')return;
+          if(result.mode!=='handle'){folderInput.click();return;}
+          handle=result.handle;v628RootHandle=handle;
+        }
+        v628Connected=true;v628Diag.connected=true;v628Diag.mode='handle';refreshV628AccessUi();
+        try{setStatus('ROMS — CHARGEMENT…');}catch(_){}
+        const walked=await folderApi.walkRomDirectory(handle,{concurrency:16,yieldEvery:150});
+        const part=globalThis.__RETROOM_FAST_SCAN_TEST__?.partition
+          ? globalThis.__RETROOM_FAST_SCAN_TEST__.partition(walked.files)
+          : {romFiles:walked.files,mediaIgnored:0,techIgnored:0,emptyIgnored:0,total:walked.files.length};
+        const detail={...part,allFiles:walked.files,startedAt:started,source:'handle',walkStats:walked.stats};
+        document.dispatchEvent(new CustomEvent('retroom-fast-folder-scan',{detail}));
+      }catch(err){
+        if(err?.name==='AbortError')return;
+        console.warn('RetroRoom V6.28 folder handle fallback',err);
+        v628Diag.mode='legacy';folderInput.click();
+      }
+    },true);
+  }
 
   /* Library+ prend la recherche en charge ; on empêche l'ancien renderer de remplacer notre grille. */
   search.addEventListener('input',e=>{e.stopImmediatePropagation();state.query=search.value;state.page=1;renderPlus();},true);
@@ -1738,6 +2299,7 @@
     if(prefs.lastSystem&&systemSelect.querySelector(`option[value="${CSS.escape(prefs.lastSystem)}"]`))systemSelect.value=prefs.lastSystem;
     updateQuickLast();
   },80);
+  restoreV628Cache();
 })();
 </script>
 
@@ -2316,7 +2878,11 @@
       globalThis.__RETROOM_V626_BIOS_SELECTION__=all;
     }
   },true);
-  if(biosFolderBtn&&biosFolderInput)biosFolderBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();biosFolderInput.click();});
+  if(biosFolderBtn&&biosFolderInput)biosFolderBtn.addEventListener('click',e=>{
+    e.preventDefault();e.stopPropagation();
+    if(typeof globalThis.__RETROOM_FAST_BIOS_PICK__==='function')globalThis.__RETROOM_FAST_BIOS_PICK__(biosFolderInput);
+    else biosFolderInput.click();
+  });
 
   const plusStats=document.getElementById('libraryPlusStats');
   const libBadge=document.getElementById('libraryBadge');
@@ -3452,25 +4018,35 @@ globalThis.__RETROOM_V616_ROMS_BIOS_SPLIT__=true;
 
   async function processBiosSelection(all){
     const psx=[],opera=[];let archiveErrors=0,archives=0,archivesIndexed=0,legacyArchiveErrors=0;
+    const runtimeSources={psx:[],threeDO:[]};
+    const sourcePath=file=>String(file?.webkitRelativePath||file?.__retroomRelativePath||file?.name||'').replace(/\\/g,'/');
     // V6.27.4 — indexe les ZIP par leur répertoire central sans décompresser.
     // Seuls les BIOS PS1/3DO réellement nécessaires au runtime sont extraits ensuite.
     const remoteCatalog=await ensureRetroBiosCatalog();
     try{globalThis.BiosIndex?.clear();}catch(_){}
     for(const file of (all||[])){
-      const name=String(file?.name||''),ext=extOfName(name);
+      const name=String(file?.name||''),ext=extOfName(name),source=sourcePath(file);
       try{globalThis.BiosIndex?.indexFile?.(file,file?.webkitRelativePath||file?.name||'');}catch(_){}
-      const p=normalizePsxBiosFile(file);if(p)psx.push(p);
-      if(OPERA_RE.test(name))opera.push(file);
+      const p=normalizePsxBiosFile(file);
+      if(p){psx.push(p);runtimeSources.psx.push({sourcePath:source,kind:'raw',wanted:[]});}
+      if(OPERA_RE.test(name)){opera.push(file);runtimeSources.threeDO.push({sourcePath:source,kind:'raw',wanted:[]});}
       if(isBiosArchiveExt(ext)){
         archives++;
         try{
           const entries=await extractArchive(file);
           archivesIndexed++;
           try{globalThis.BiosIndex?.indexExtracted(entries);}catch(_){}
+          const wantedPsxPaths=[],wantedOperaPaths=[];
+          for(const entry of flattenExtracted(entries)){
+            const logical=String(entry?.pathname||entry?.filename||entry?.file?.name||'').replace(/\\/g,'/');
+            if(!logical)continue;
+            if(isPsxBiosName(logical))wantedPsxPaths.push(logical);
+            if(OPERA_RE.test(basename(logical)))wantedOperaPaths.push(logical);
+          }
+          if(wantedPsxPaths.length)runtimeSources.psx.push({sourcePath:source,kind:ext,wanted:[...new Set(wantedPsxPaths)]});
+          if(wantedOperaPaths.length)runtimeSources.threeDO.push({sourcePath:source,kind:ext,wanted:[...new Set(wantedOperaPaths)]});
           if(ext==='zip'){
-            const wanted=flattenExtracted(entries)
-              .map(entry=>entry.pathname||entry.filename||entry.file?.name||'')
-              .filter(path=>isPsxBiosName(path)||OPERA_RE.test(basename(path)));
+            const wanted=[...new Set([...wantedPsxPaths,...wantedOperaPaths])];
             if(wanted.length){
               try{
                 const realEntries=await extractZipSelected(file,wanted);
@@ -3492,7 +4068,8 @@ globalThis.__RETROOM_V616_ROMS_BIOS_SPLIT__=true;
     globalThis.__RETROOM_V616_BIOS_FILES__=dedupeFiles(opera);
     const globalBios=globalThis.BiosIndex?.snapshot?.()||{matchedFiles:0,coveredSystems:0,matchedEntries:0,systems:{}};
     globalThis.__RETROOM_GLOBAL_BIOS_V627__={index:globalThis.BiosIndex||null,snapshot:globalBios};
-    return {psx:globalThis.__RETROOM_PSX_BIOS_FILES__,opera:globalThis.__RETROOM_V616_BIOS_FILES__,archives,archivesIndexed,archiveErrors,legacyArchiveErrors,globalBios,remoteCatalog};
+    globalThis.__RETROOM_BIOS_RUNTIME_SOURCES_V6282__=runtimeSources;
+    return {psx:globalThis.__RETROOM_PSX_BIOS_FILES__,opera:globalThis.__RETROOM_V616_BIOS_FILES__,archives,archivesIndexed,archiveErrors,legacyArchiveErrors,globalBios,remoteCatalog,runtimeSources};
   }
 
   const biosInput=document.getElementById('biosFolderInput');
@@ -3530,6 +4107,7 @@ globalThis.__RETROOM_V616_ROMS_BIOS_SPLIT__=true;
           const registryNote=info.remoteCatalog?.ok?` • registre RetroArch ${info.remoteCatalog.sourceFiles}`:' • registre local';
           showToast(total?`BIOS : ${total} fichiers reconnus • ${coveredSystems} systèmes couverts${archiveNote}${registryNote}`:`Aucun BIOS reconnu${archiveNote}${registryNote}`,6200);
         }catch(_){ }
+        try{globalThis.__RETROOM_FAST_BIOS_AFTER_SCAN__?.(all,info,{connected:true,source:'legacy'});}catch(_){}
         biosInput.value='';
       }).catch(err=>{
         if(biosBtn){biosBtn.disabled=false;biosBtn.textContent='BIOS !';}
@@ -3595,9 +4173,348 @@ globalThis.__RETROOM_V616_ROMS_BIOS_SPLIT__=true;
   globalThis.__RETROOM_PSX_V626__={canonicalizePsxDiscFiles,resolvePsxCueBundle,processBiosSelection,choosePsxBios};
   globalThis.__RETROOM_PSX_V626_TEST__={
     normalizePath,cueFileReferences,canonicalizePsxDiscFiles,resolvePsxCueBundle,
-    isPsxBiosName,isBiosArchiveExt,psxCanonicalName,pickPsxBiosFromExtracted,collectRecognizedFromExtracted,choosePsxBios,
+    isPsxBiosName,isBiosArchiveExt,psxCanonicalName,normalizePsxBiosFile,pickPsxBiosFromExtracted,collectRecognizedFromExtracted,choosePsxBios,
     ensureJsZipRuntime,listZipEntriesFast,extractZipSelected,extractArchive
   };
+})();
+</script>
+
+<script id="fast-bios-v6282-script">
+(function(root,factory){
+  const api=factory(root);
+  if(typeof module==='object'&&module.exports)module.exports=api;
+  if(root)root.__RETROOM_FAST_BIOS_V6282__=api;
+})(typeof globalThis!=='undefined'?globalThis:this,function(root){
+  'use strict';
+
+  const DB_NAME='retroom-v628';
+  const DB_VERSION=1;
+  const STORE='state';
+  const CACHE_KEY='biosCacheV6282';
+  const HANDLE_KEY='biosDirectoryHandle';
+  const LS_KEY='retroom.bios.v6282';
+  const CACHE_VERSION=1;
+
+  const cleanPath=v=>String(v||'').replace(/\\/g,'/').replace(/^\/+|\/+$/g,'');
+  const extOf=name=>{const p=String(name||'').split('.');return p.length>1?p.pop().toLowerCase():'';};
+
+  function sanitizeRuntimeSources(value){
+    const out={psx:[],threeDO:[]};
+    for(const sid of ['psx','threeDO']){
+      for(const item of value?.[sid]||[]){
+        const sourcePath=cleanPath(item?.sourcePath);
+        if(!sourcePath)continue;
+        out[sid].push({
+          sourcePath,
+          kind:String(item?.kind||extOf(sourcePath)||'raw').toLowerCase(),
+          wanted:[...new Set((item?.wanted||[]).map(cleanPath).filter(Boolean))]
+        });
+      }
+    }
+    return out;
+  }
+
+  function makeSnapshot(files,info){
+    const globalInfo=info?.globalBios||{matchedFiles:0,coveredSystems:0};
+    const legacyTotal=(info?.psx?.length||0)+(info?.opera?.length||0);
+    const total=Math.max(Number(globalInfo.matchedFiles)||0,legacyTotal);
+    return {
+      version:CACHE_VERSION,
+      savedAt:Date.now(),
+      total,
+      coveredSystems:Number(globalInfo.coveredSystems)||0,
+      selectionCount:Array.from(files||[]).length,
+      archives:Number(info?.archives)||0,
+      archivesIndexed:Number(info?.archivesIndexed)||0,
+      sourceFiles:Number(info?.remoteCatalog?.sourceFiles)||0,
+      sourceOk:!!info?.remoteCatalog?.ok,
+      globalBios:globalInfo,
+      runtimeSources:sanitizeRuntimeSources(info?.runtimeSources||root?.__RETROOM_BIOS_RUNTIME_SOURCES_V6282__)
+    };
+  }
+
+  function validSnapshot(value){
+    return !!value&&value.version===CACHE_VERSION&&Number.isFinite(Number(value.total))&&value.runtimeSources;
+  }
+
+  function uiState(cache,connected=false){
+    if(!validSnapshot(cache))return {buttonLabel:'BIOS',diagText:'',title:''};
+    const total=Number(cache.total)||0;
+    const systems=Number(cache.coveredSystems)||0;
+    const archiveTxt=cache.archives?` • ARCHIVES INDEXÉES ${cache.archivesIndexed||0}/${cache.archives}`:'';
+    const source=cache.sourceOk?`RETROARCH ${cache.sourceFiles||0}`:'REGISTRE LOCAL';
+    return {
+      buttonLabel:total?`BIOS ${total}${connected?' ✓':''}`:'BIOS !',
+      diagText:`BIOS ${total} RECONNUS • ${systems} SYSTÈMES • PRÊT${archiveTxt} • ${source}`,
+      title:`${total} BIOS reconnus • ${systems} systèmes${connected?' • dossier autorisé':' • autorisation à faire une fois'}`
+    };
+  }
+
+  function openDb(){
+    return new Promise((resolve,reject)=>{
+      if(!root?.indexedDB){reject(new Error('IndexedDB unavailable'));return;}
+      let req;
+      try{req=root.indexedDB.open(DB_NAME,DB_VERSION);}catch(err){reject(err);return;}
+      req.onupgradeneeded=()=>{
+        const db=req.result;
+        if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE);
+      };
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>reject(req.error||new Error('IndexedDB open failed'));
+    });
+  }
+
+  async function idbGet(key){
+    const db=await openDb();
+    try{
+      return await new Promise((resolve,reject)=>{
+        const tx=db.transaction(STORE,'readonly');
+        const req=tx.objectStore(STORE).get(key);
+        req.onsuccess=()=>resolve(req.result);
+        req.onerror=()=>reject(req.error||new Error('IndexedDB get failed'));
+      });
+    }finally{try{db.close();}catch(_){}}
+  }
+
+  async function idbSet(key,value){
+    const db=await openDb();
+    try{
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction(STORE,'readwrite');
+        tx.oncomplete=()=>resolve();
+        tx.onerror=()=>reject(tx.error||new Error('IndexedDB write failed'));
+        tx.objectStore(STORE).put(value,key);
+      });
+    }finally{try{db.close();}catch(_){}}
+    return value;
+  }
+
+  async function loadCache(){
+    try{
+      const value=await idbGet(CACHE_KEY);
+      if(validSnapshot(value))return value;
+    }catch(_){}
+    try{
+      const raw=root?.localStorage?.getItem?.(LS_KEY);
+      if(raw){
+        const value=JSON.parse(raw);
+        if(validSnapshot(value))return value;
+      }
+    }catch(_){}
+    return null;
+  }
+
+  async function saveCache(snapshot){
+    if(!validSnapshot(snapshot))return false;
+    let saved=false;
+    try{await idbSet(CACHE_KEY,snapshot);saved=true;}catch(_){}
+    try{root?.localStorage?.setItem?.(LS_KEY,JSON.stringify(snapshot));saved=true;}catch(_){}
+    return saved;
+  }
+
+  async function loadHandle(){try{return await idbGet(HANDLE_KEY)||null;}catch(_){return null;}}
+  async function saveHandle(handle){if(!handle)return false;try{await idbSet(HANDLE_KEY,handle);return true;}catch(_){return false;}}
+
+  async function permissionState(handle){
+    if(!handle)return 'denied';
+    try{
+      if(typeof handle.queryPermission==='function')return await handle.queryPermission({mode:'read'});
+    }catch(_){}
+    return 'prompt';
+  }
+
+  async function requestHandlePermission(handle){
+    let state=await permissionState(handle);
+    if(state==='granted')return true;
+    try{
+      if(typeof handle.requestPermission==='function')state=await handle.requestPermission({mode:'read'});
+    }catch(_){}
+    return state==='granted';
+  }
+
+  function annotate(file,path){
+    const p=cleanPath(path);
+    try{Object.defineProperty(file,'webkitRelativePath',{value:p,configurable:true});}
+    catch(_){try{file.__retroomRelativePath=p;}catch(__){}}
+    return file;
+  }
+
+  async function walkDirectory(handle){
+    const rootName=String(handle?.name||'BIOS');
+    const files=[];
+    async function walk(dir,prefix){
+      for await(const entry of dir.values()){
+        if(entry.kind==='directory')await walk(entry,`${prefix}/${entry.name}`);
+        else if(entry.kind==='file'){
+          const file=await entry.getFile();
+          if(file&&Number(file.size)>0)files.push(annotate(file,`${prefix}/${entry.name}`));
+        }
+      }
+    }
+    await walk(handle,rootName);
+    return files;
+  }
+
+  function rootlessParts(handle,path){
+    const parts=cleanPath(path).split('/').filter(Boolean);
+    if(parts.length&&String(parts[0]).toLowerCase()===String(handle?.name||'').toLowerCase())parts.shift();
+    return parts;
+  }
+
+  async function resolveFile(handle,path){
+    const folderApi=root?.__RETROOM_FOLDER_ACCESS_V628__;
+    if(folderApi?.resolveFileByPath)return await folderApi.resolveFileByPath(handle,path);
+    const parts=rootlessParts(handle,path);
+    if(!parts.length)throw new Error('BIOS path empty');
+    let dir=handle;
+    for(let i=0;i<parts.length-1;i++)dir=await dir.getDirectoryHandle(parts[i]);
+    const fh=await dir.getFileHandle(parts.at(-1));
+    return annotate(await fh.getFile(),cleanPath(path));
+  }
+
+  return {
+    CACHE_VERSION,makeSnapshot,validSnapshot,uiState,sanitizeRuntimeSources,
+    loadCache,saveCache,loadHandle,saveHandle,permissionState,requestHandlePermission,
+    walkDirectory,resolveFile,
+    _test:{cleanPath,extOf,rootlessParts}
+  };
+});
+
+(() => {
+  'use strict';
+  if(typeof document==='undefined'||globalThis.__RETROOM_FAST_BIOS_V6282_READY__)return;
+  globalThis.__RETROOM_FAST_BIOS_V6282_READY__=true;
+
+  const api=globalThis.__RETROOM_FAST_BIOS_V6282__;
+  const biosBtn=document.getElementById('biosFolderBtn');
+  const biosInput=document.getElementById('biosFolderInput');
+  const biosDiag=document.getElementById('biosDiag');
+  let cache=null,handle=null,connected=false,busy=false;
+
+  function render(){
+    const ui=api.uiState(cache,connected);
+    if(biosBtn){
+      biosBtn.disabled=busy;
+      biosBtn.textContent=busy?'BIOS …':ui.buttonLabel;
+      biosBtn.title=ui.title||'Sélectionner le dossier BIOS';
+    }
+    if(biosDiag&&ui.diagText){
+      biosDiag.textContent=ui.diagText;
+      biosDiag.classList.add('show');
+      biosDiag.classList.remove('bad');
+    }
+  }
+
+  async function rememberScan(files,info,{directoryHandle=null,connected:nowConnected=true}={}){
+    cache=api.makeSnapshot(files,info);
+    connected=!!nowConnected;
+    await api.saveCache(cache);
+    if(directoryHandle){handle=directoryHandle;await api.saveHandle(directoryHandle);}
+    render();
+    return cache;
+  }
+
+  globalThis.__RETROOM_FAST_BIOS_AFTER_SCAN__=(files,info,opts={})=>{
+    Promise.resolve(rememberScan(files,info,{connected:opts.connected!==false})).catch(()=>{});
+  };
+
+  async function rehydrateSystem(systemId,{allowPrompt=false}={}){
+    if(systemId!=='psx'&&systemId!=='threeDO')return true;
+    if(systemId==='psx'&&(globalThis.__RETROOM_PSX_BIOS_FILES__||[]).length)return true;
+    if(systemId==='threeDO'&&(globalThis.__RETROOM_V616_BIOS_FILES__||[]).length)return true;
+
+    cache=cache||await api.loadCache();
+    if(!cache)return true;
+    const sources=cache.runtimeSources?.[systemId]||[];
+    if(!sources.length)return true;
+
+    handle=handle||await api.loadHandle();
+    if(!handle)return false;
+
+    let granted=(await api.permissionState(handle))==='granted';
+    if(!granted&&allowPrompt)granted=await api.requestHandlePermission(handle);
+    if(!granted)return false;
+
+    const psx=[],opera=[];
+    const support=globalThis.__RETROOM_PSX_V626_TEST__||{};
+    for(const src of sources){
+      const container=await api.resolveFile(handle,src.sourcePath);
+      if(src.kind==='raw'){
+        if(systemId==='psx'){
+          const normalized=support.normalizePsxBiosFile?.(container)||container;
+          if(normalized)psx.push(normalized);
+        }else opera.push(container);
+        continue;
+      }
+      let entries;
+      if(src.kind==='zip')entries=await support.extractZipSelected(container,src.wanted||[]);
+      else entries=await support.extractArchive(container);
+      const got=support.collectRecognizedFromExtracted?.(entries)||{psx:[],opera:[]};
+      psx.push(...(got.psx||[]));opera.push(...(got.opera||[]));
+    }
+
+    if(systemId==='psx')globalThis.__RETROOM_PSX_BIOS_FILES__=[...new Map(psx.filter(Boolean).map(f=>[String(f.name||'').toLowerCase(),f])).values()];
+    if(systemId==='threeDO')globalThis.__RETROOM_V616_BIOS_FILES__=[...new Map(opera.filter(Boolean).map(f=>[String(f.name||'').toLowerCase(),f])).values()];
+    connected=true;render();
+    return systemId==='psx'
+      ? (globalThis.__RETROOM_PSX_BIOS_FILES__||[]).length>0
+      : (globalThis.__RETROOM_V616_BIOS_FILES__||[]).length>0;
+  }
+
+  globalThis.__RETROOM_FAST_BIOS_ENSURE__=systemId=>rehydrateSystem(systemId,{allowPrompt:false});
+
+  async function fullScan(directoryHandle){
+    busy=true;render();
+    try{
+      const files=await api.walkDirectory(directoryHandle);
+      const process=globalThis.__RETROOM_PSX_V626__?.processBiosSelection;
+      if(typeof process!=='function')throw new Error('BIOS scanner unavailable');
+      const info=await process(files);
+      await rememberScan(files,info,{directoryHandle,connected:true});
+      const total=cache?.total||0;
+      try{showToast(`BIOS : ${total} reconnus • cache rapide activé`,3600);}catch(_){}
+    }finally{busy=false;render();}
+  }
+
+  globalThis.__RETROOM_FAST_BIOS_PICK__=async legacyInput=>{
+    if(busy)return;
+    cache=cache||await api.loadCache();
+    handle=handle||await api.loadHandle();
+
+    if(cache&&handle&&!connected){
+      busy=true;render();
+      try{
+        const granted=await api.requestHandlePermission(handle);
+        if(granted){
+          await Promise.all([
+            rehydrateSystem('psx',{allowPrompt:false}),
+            rehydrateSystem('threeDO',{allowPrompt:false})
+          ]);
+          connected=true;render();
+          try{showToast('BIOS : dossier autorisé • prêt',2400);}catch(_){}
+          return;
+        }
+      }catch(_){}
+      finally{busy=false;render();}
+    }
+
+    if(typeof globalThis.showDirectoryPicker==='function'&&globalThis.isSecureContext!==false){
+      try{
+        const picked=await globalThis.showDirectoryPicker({id:'retroom-bios',mode:'read'});
+        handle=picked;await api.saveHandle(picked);
+        await fullScan(picked);
+        return;
+      }catch(err){
+        if(err?.name==='AbortError')return;
+      }
+    }
+    legacyInput?.click();
+  };
+
+  Promise.all([api.loadCache(),api.loadHandle()]).then(([saved,savedHandle])=>{
+    cache=saved;handle=savedHandle;
+    render();
+  }).catch(()=>{});
 })();
 </script>
 

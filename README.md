@@ -1,14 +1,27 @@
 # Retro Room by L’électron libre
 
-**RetroRoom V6.27.5** est la version publique actuelle : une chambre retrogaming immersive inspirée des années 90, avec bibliothèque locale, contrôles tactiles adaptés aux systèmes et émulation multi-systèmes via EmulatorJS.
+**RetroRoom V6.29 STABLE** est la version publique actuelle : une chambre retrogaming immersive inspirée des années 90, pensée d’abord pour Android/mobile, avec bibliothèque locale, contrôles tactiles adaptés aux systèmes et émulation via EmulatorJS.
+
+## Nouveautés V6.29 STABLE
+
+- **FAST LIBRARY** : après un premier scan, la bibliothèque ROMS est mémorisée et réapparaît immédiatement au prochain lancement ;
+- **FAST BIOS** : même principe pour l’index BIOS, sans rescanner massivement le dossier à chaque ouverture ;
+- seuls les **métadonnées/index** et, quand le navigateur l’autorise, les handles de dossier sont mémorisés : RetroRoom ne copie pas les ROMs ni les BIOS dans son cache ;
+- fallback Android/Chrome conservé : si l’autorisation persistante n’est pas disponible, RetroRoom redemande simplement l’accès au dossier au moment nécessaire ;
+- FAST SCAN, CLEAN EXIT, CUE/BIN PS1 et 3DO, contrôles N64 et Virtual Boy restent inchangés.
+
+Validation terrain de cette release sur **Xiaomi 13T Pro / Android / Chrome** : bibliothèque de **1219 ROMs / 17 systèmes**. Le test BIOS utilisé pendant la validation contenait **353 BIOS reconnus / 85 systèmes / 81 archives indexées**.
 
 ## Démarrage rapide
 
-1. Télécharge `index.html` (ou le dépôt complet).
-2. Ouvre `index.html` dans un navigateur moderne avec une connexion Internet : RetroRoom charge certains moteurs et fichiers de support depuis des CDN publics.
-3. Ouvre **BIBLIO**, touche **ROMS** et sélectionne ton dossier de jeux.
-4. Si tes systèmes utilisent des BIOS, touche **BIOS** et sélectionne séparément ton dossier BIOS.
-5. Lance un jeu depuis la bibliothèque. Pour changer de jeu : **QUITTER → BIBLIO → autre ROM**. La bibliothèque reste chargée tant que la page RetroRoom reste ouverte.
+1. Ouvre RetroRoom dans un navigateur moderne avec une connexion Internet.
+2. Ouvre **BIBLIO**.
+3. Touche **ROMS** et sélectionne ton dossier de jeux.
+4. Touche **BIOS** et sélectionne ton dossier BIOS si nécessaire.
+5. Lance un jeu depuis la bibliothèque.
+6. Pour changer de jeu : **QUITTER → BIBLIO → autre ROM**.
+
+Au prochain lancement, RetroRoom recharge immédiatement les index mémorisés. Selon les permissions accordées par Android/Chrome, le premier lancement d’un jeu peut demander une autorisation du dossier ROMS ou BIOS ; après autorisation, il n’y a pas de rescan massif inutile.
 
 Les ROMs et BIOS ne sont pas fournis dans ce dépôt.
 
@@ -16,75 +29,63 @@ Les ROMs et BIOS ne sont pas fournis dans ce dépôt.
 
 Le nom du dossier racine n’est pas imposé : `ROM`, `ROMS`, `JEUX`, etc. fonctionnent.
 
-RetroRoom connaît un large catalogue de noms de dossiers compatibles avec la structure créée par **ES-DE**. Un dossier système vide ne s’affiche pas : `systeminfo.txt`, `systems.txt`, `.nomedia`, images, vidéos et autres fichiers techniques ne comptent jamais comme jeux. Un système apparaît uniquement lorsqu’au moins une vraie ROM compatible est détectée.
+RetroRoom connaît un large catalogue de noms de dossiers compatibles avec la structure **ES-DE**. Un dossier système vide ne s’affiche pas : `systeminfo.txt`, `systems.txt`, `.nomedia`, images, vidéos et autres fichiers techniques ne comptent jamais comme jeux.
 
-Il est recommandé de garder le dossier **BIOS en dehors du dossier ROMS** : le scan des jeux est plus propre et Android/Chrome n’a pas à énumérer inutilement tous les BIOS pendant le scan ROM.
+Il est recommandé de garder le dossier **BIOS en dehors du dossier ROMS** : le scan des jeux reste plus propre et Android/Chrome n’a pas à parcourir inutilement les BIOS pendant le scan ROM.
 
-## Bibliothèque et scan
+## Bibliothèque et cache
 
-- FAST SCAN à partir d’un seul snapshot du dossier ;
+- scan initial FAST SCAN ;
+- cache de bibliothèque FAST LIBRARY ;
+- cache d’index BIOS FAST BIOS ;
 - détection prioritaire par dossier système, puis extension en secours ;
-- images, vidéos, fichiers techniques et médias ignorés très tôt ;
+- images, vidéos, fichiers techniques et médias ignorés ;
 - CUE + BIN regroupés en une seule entrée lorsque nécessaire ;
-- la bibliothèque s’ouvre sur **TOUS** après chargement ou rescan ;
-- favoris et récents disponibles ;
-- CLEAN EXIT : changement de jeu sans recharger la page ni rescanner la bibliothèque ;
+- bibliothèque ouverte sur **TOUS** après chargement ou rescan ;
+- favoris et récents ;
+- CLEAN EXIT : changement de jeu sans recharger la page ;
 - D-pad numérique 8 directions glissable pour les systèmes concernés.
-
-Sur Android en mode fichier local (`content://`), les permissions de dossier restent soumises au navigateur. Après une fermeture/recharge complète de la page, il peut être nécessaire de sélectionner de nouveau le dossier ROMS et le dossier BIOS.
 
 ## BIOS global
 
-Le bouton **BIOS** indexe les firmwares indépendamment des systèmes actuellement présents dans le dossier ROMS. Cela permet de préparer à l’avance les BIOS de systèmes qui seront ajoutés plus tard.
+Le bouton **BIOS** indexe les firmwares indépendamment des systèmes présents dans le dossier ROMS.
 
 Le scanner reconnaît des BIOS bruts ainsi que le contenu d’archives **ZIP, 7Z et RAR**. Les ZIP sont indexés rapidement par leur répertoire interne afin d’éviter de tout décompresser pendant le scan. Le registre peut compléter sa base locale avec le catalogue RetroArch disponible en ligne.
 
-La présence d’un BIOS ne fait jamais apparaître un système vide dans la bibliothèque.
+Avec V6.29, l’état de cet index est restauré depuis le cache au redémarrage. Les fichiers BIOS eux-mêmes ne sont pas copiés dans le cache.
 
-## PlayStation / PS1
+## Systèmes
 
-RetroRoom gère les jeux PS1 en **CUE + BIN** comme un seul jeu : les BIN référencés ne sont pas affichés en double mais restent montés pour l’émulation.
+RetroRoom contient des cores/configurations pour de nombreuses machines Nintendo, Sega, Sony, Atari, NEC, SNK, arcade et micro-ordinateurs. La détection d’un système dans la bibliothèque ne signifie pas automatiquement qu’il a été retesté physiquement sur chaque release.
 
-Les formats disque pris en compte incluent notamment CUE/BIN, CHD, PBP, M3U et CCD selon le core utilisé. Le correctif de lancement conserve le vrai fichier `.cue` comme média principal afin d’éviter un démarrage à vide dans le menu RetroArch.
+La liste détaillée avec la différence entre **core configuré** et **validation réelle sur Xiaomi 13T Pro** est disponible dans [`docs/SYSTEMS.md`](docs/SYSTEMS.md).
 
-## 3DO
+Validation explicitement tracée dans le projet : **SNES / Super Famicom, Nintendo 64, PlayStation, Atari Lynx, CPS II, 3DO et Virtual Boy**. Les autres lignes du tableau sont des systèmes dont le moteur/core est configuré par RetroRoom mais qui ne sont pas présentés comme individuellement revalidés sur V6.29.
 
-La 3DO utilise le core Opera. Les jeux **CUE + BIN** sont regroupés en une seule entrée et les BIN référencés sont montés automatiquement.
+## Points particuliers
 
-La manette tactile 3DO utilise une disposition unique pour tous les jeux :
+### PlayStation / PS1
+
+Les jeux PS1 **CUE + BIN** sont regroupés en une seule entrée. Les BIN référencés ne sont pas affichés en double mais restent montés pour l’émulation. Les formats disque pris en compte incluent notamment CUE/BIN, CHD, PBP, M3U et CCD selon le core utilisé.
+
+### 3DO
+
+La 3DO utilise Opera. Les jeux **CUE + BIN** sont regroupés et les BIN référencés sont montés automatiquement. La manette tactile utilise la disposition globale :
 
 `L · P · R`
 
 `A · B · C`
 
-avec **STOP** séparé. `P` correspond au bouton **PLAY** de la manette 3DO.
+avec **STOP** séparé. `P` correspond à **PLAY**.
 
-## Nintendo 64
+### Nintendo 64
 
-Le profil N64 possède une vraie disposition dédiée : **D-pad + stick analogique tactile indépendant**, A/B, quatre boutons C, L/R/Z et Start. Le pad standard reste affiché au démarrage et le profil N64 n’apparaît que lorsqu’un jeu N64 est sélectionné.
+Profil dédié avec **D-pad + vrai stick analogique tactile**, A/B, quatre boutons C, L/R/Z et Start.
 
-## Virtual Boy
+### Virtual Boy
 
-Le Virtual Boy possède maintenant son profil tactile dédié, fidèle au principe de la manette originale :
+Profil tactile dédié avec **deux croix directionnelles indépendantes**, A/B, SELECT/START et L/R.
 
-- deux croix directionnelles indépendantes ;
-- A / B ;
-- SELECT / START ;
-- L / R.
+## Intégrité
 
-Le système est détecté automatiquement avec les dossiers ES-DE `virtualboy` et les formats pris en charge par son core.
-
-## État de V6.27.5
-
-- catalogue systèmes étendu pour les structures ES-DE ;
-- systèmes vides invisibles ;
-- BIOS global et indexation rapide des archives ;
-- FAST SCAN et CLEAN EXIT conservés ;
-- PS1 CUE/BIN validé ;
-- 3DO CUE/BIN et pad global validés ;
-- N64 avec stick analogique dédié ;
-- Virtual Boy avec double D-pad et L/R ;
-- aucune ROM ni aucun BIOS distribué ;
-- l’expérimentation d’import massif des médias ES-DE n’est pas incluse dans cette release.
-
-Le fichier `RELEASE_SHA256.txt` permet de vérifier l’intégrité du `index.html` public.
+`RELEASE_SHA256.txt` contient le SHA-256 du `index.html` public de V6.29 STABLE.
