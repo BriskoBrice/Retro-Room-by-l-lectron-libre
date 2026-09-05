@@ -10,6 +10,6 @@ test('Retro Library starts on TOUS instead of restoring the previous system tab'
 });
 
 test('rescanning a ROM folder returns the library to TOUS', () => {
-  const scan = html.match(/async function scanPlus\(files\)\{[\s\S]*?savePrefs\(\);renderPlus\(\);\n  \}/)?.[0] || '';
-  assert.match(scan, /rows=libraryFiles\.map\(entryFromFile\);state\.tab='all';state\.page=1;/);
+  const scan = html.match(/async function scanPlus\(files,fingerprint=''\)\{[\s\S]*?saveV628Cache\(fingerprint\);\n  \}/)?.[0] || '';
+  assert.match(scan, /rows=libraryFiles\.map\(entryFromFile\);state\.tab='all';state\.page=1;state\.query='';search\.value='';/);
 });
